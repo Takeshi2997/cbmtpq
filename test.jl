@@ -4,14 +4,22 @@ include("./initialize.jl")
 include("./functions.jl")
 using .Const, .MLcore, .Init, .Func, LinearAlgebra, Serialization
 
-function f(boolianval)
-    if boolianval == true
-        return 1.0
-    else
-        return 0.0
+function f(s1, s2)
+    σx = [1.0 1.0]
+    return prod(σx .* (s1 .!= s2))
+end
+
+A = zeros(Float32, 4, 4)
+s1array = [[1.0 1.0], [-1.0 1.0], [1.0 -1.0], [-1.0 -1.0]]
+s2array = copy(s1array)
+println([1.0 1.0] .* (s1array[2] .!= s2array[1]))
+for ix in 1:4
+    for iy in 1:4
+        global A[ix, iy] = f(s1array[ix], s2array[iy])
     end
 end
-    
-v = [1 2 3 4 5]
-println([v .> 2])
-println(convert.(Array{Float32}, [v .> 2]))
+
+display(A)
+
+println()
+
