@@ -5,11 +5,6 @@ module Init
 
     function weight(i, j)
 
-        return ones(Complex{Float32}, i, j) * 10^(-8)
-    end
-
-    function bias(i)
-
-        return zeros(Complex{Float32}, i)
+        return - ones(Complex{Float32}, i, j) * 10^(-11)
     end
 end

@@ -1,6 +1,6 @@
 module Func
     include("./setup.jl")
-    using .Const
+    using .Const, LinearAlgebra
 
     function sigmoid(x)
 
@@ -48,52 +48,76 @@ module Func
         return s
     end
 
-    function wavefunctionS(s, z)
+    function wavefunctionfactorS(s2, n1, s1, weight, biasS)
 
+        z = transpose(weight) * n1 .+ biasS
+        zstar = conj(z)
         realz = 2.0 * real(z)
-        action = z * s
-        partitionfunction = prob(exp.(realz) .+ exp.(-realz))
-        return exp(action) / partitionfunction
+        action1 = transpose(conj(z)) * s1
+        action2 = transpose(z) * s2
+        marginalfactor = 
+        exp(sum(log.(exp.(realz) .+ exp.(-realz))) / Const.dimS)
+        return marginalfactor * exp(-(action1 + action2))
     end
 
-    function wavefunctionS(n, z)
+    function wavefunctionfactorB(n2, s2, n1, weight, biasB)
 
+        z = weight * s2 .+ biasB
+        zstar = conj(z)
         realz = 2.0 * real(z)
-        action = transpose(n) * z
-        partitionfunction = prob(1.0 .+ exp.(-realz))
-        return exp(action) / partitionfunction
+        action1 = transpose(conj(z)) * n1
+        action2 = transpose(z) * n2
+        marginalfactor = exp(sum(log.(1.0 .+ exp.(realz))) / Const.dimB)
+        return marginalfactor * exp(-(action1 + action2))
     end
 
-    function hamiltonianS(s)
+    function wavefunctionfactorI(n2, s2, n1, s1, weight, biasS, biasB)
+
+        zS = weight * s2 .+ biasB
+        zB = transpose(weight) * n1 .+biasS
+        zSstar = conj(zS)
+        zBstar = conj(zB)
+        realzS = zS .+ zSstar
+        realzB = zB .+ zBstar
+        action1 = transpose(zS) * n2
+        action2 = transpose(realzS) * n1
+        action3 = transpose(conj(zB)) * s1
+        marginalfactorS = exp(sum(log.(1.0 .+ exp.(realzS))) / Const.dimB)
+        marginalfactorB = 
+        exp(sum(log.(exp.(realzB) .+ exp.(-realzB))) / Const.dimS)
+        return marginalfactorS * marginalfactorB * 
+        exp(-(action1 + action2 + action3))
+    end
+
+    function hamiltonianS(s2, s1)
 
         sum = 0.0
-        for ix in 1:2:Const.dimS-1
-            sum += s[ix] * s[ix + 1]
+        e = [1.0 1.0]
+        for ix in 1:Const.dimS-1
+            sum += (prod(e .* (s1[ix:ix+1] .!= s2[ix:ix+1])) + 
+            prod(1.0im * s1[ix:ix+1] .* (s1[ix:ix+1] .!= s2[ix:ix+1])) + 
+            prod(s1[ix:ix+1] .* (s1[ix:ix+1] .== s2[ix:ix+1]))) / 4.0
         end
         return -Const.J * sum
     end
 
-    function hamiltonianB(n1, n2)
+    function hamiltonianB(n2, n1)
 
         return Const.ω * sum(n1[n1 .== n2])
     end
 
-    function hamiltonianint(n1, n2, s1, s2)
+    function hamiltonianI(n2, s2, n1, s1)
 
         w = ones(Const.dimB, Const.dimS)
-        bassmatrix = 
+        n = n1 .* (n1 .!= n2)
+        s = s1 .* (s1 == s2) / 2.0
         return - Const.δ * transpose(n) * w * s
     end
 
-    function hamiltonian(n, s)
+    function hamiltonian(n2, s2, n1, s1)
 
-
-        return energyB(n) + energyS 
-    end
-
-    function squarehamiltonian(n, s)
-
-        h = hamiltonian(n, s)
-        return h^2
+        out = hamiltonianS(s2, s1) + hamiltonianB(n2, n1) + 
+        hamiltonianI(n2, s2, n1, s1)
+        return out
     end
 end

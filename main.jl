@@ -12,23 +12,24 @@ mkdir(dirname)
 f = open("error.txt", "w")
 for iϵ in 1:1
 
-    ϵ = 0.04
+    ϵ = 0.5 * (iϵ / 10.0) * Const.dimB * Const.ω
 
     filename = dirname * "/param_at_" * lpad(iϵ, 3, "0") * ".dat"
 
     # Initialize weight, bias and η
     weight = Init.weight(Const.dimB, Const.dimS)
-    wmoment = zeros(Float32, Const.dimB, Const.dimS)
-    wvelocity = zeros(Float32, Const.dimB, Const.dimS)
-    biasB = Init.bias(Const.dimB)
-    bmomentB = zeros(Float32, Const.dimB)
-    bvelocityB = zeros(Float32, Const.dimB)
-    biasS = Init.bias(Const.dimS)
-    bmomentS = zeros(Float32, Const.dimS)
-    bvelocityS = zeros(Float32, Const.dimS)
+    wmoment = zeros(Complex{Float32}, Const.dimB, Const.dimS)
+    wvelocity = zeros(Complex{Float32}, Const.dimB, Const.dimS)
+    biasB = zeros(Complex{Float32}, Const.dimB)
+    bmomentB = zeros(Complex{Float32}, Const.dimB)
+    bvelocityB = zeros(Complex{Float32}, Const.dimB)
+    biasS = zeros(Complex{Float32}, Const.dimS)
+    bmomentS = zeros(Complex{Float32}, Const.dimS)
+    bvelocityS = zeros(Complex{Float32}, Const.dimS)
     error = 0.0
     energyS = 0.0
     energyB = 0.0
+    energy = 0.0
     lr = Const.lr
 
     # Define network
@@ -36,7 +37,7 @@ for iϵ in 1:1
     
     # Learning
     for it in 1:Const.it_num
-        error, energy, energyS, energyB, dispersion, dweight, dbiasB, 
+        error, energy, energyS, energyB, dweight, dbiasB, 
         dbiasS = MLcore.diff_error(network, ϵ)
 
         # Adam
@@ -53,15 +54,13 @@ for iϵ in 1:1
 
         write(f, string(it))
         write(f, "\t")
-        write(f, string(error))
+        write(f, string(real(error)))
         write(f, "\t")
-        write(f, string(dispersion))
+        write(f, string(real(energyS)))
         write(f, "\t")
-        write(f, string(energyS))
+        write(f, string(real(energyB)))
         write(f, "\t")
-        write(f, string(energyB))
-        write(f, "\t")
-        write(f, string(energyB + energyS))
+        write(f, string(real(energy)))
         write(f, "\n")
 
         network = (weight, biasB, biasS)
@@ -75,6 +74,8 @@ for iϵ in 1:1
 #    write(f, string(energyS))
 #    write(f, "\t")
 #    write(f, string(energyB))
+#    write(f, "\t")
+#    write(f, string(energy))
 #    write(f, "\n")
     
     open(io -> serialize(io, network), filename, "w")

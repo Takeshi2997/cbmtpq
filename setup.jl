@@ -24,18 +24,18 @@ module Const
 
     # System Size
     dimB = 50
-    dimS = 2 * 10
+    dimS = 2
 
     # System Param
-    ω = 0.1 / dimB
-    J = 0.02 / dimS
-    δ = 0.01 / dimB / dimS
+    ω = 0.2
+    J = 0.1
+    δ = 1.0 * 10^(-8)
 
     # Repeat Number
-    burnintime = 100
-    iters_num = 1000
-    it_num = 2000
+    burnintime = 10
+    iters_num = 200
+    it_num = 500
 
     # Learning Rate
-    lr = 0.001
+    lr = 0.0002
 end
