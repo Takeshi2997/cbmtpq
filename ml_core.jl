@@ -86,25 +86,59 @@ module MLcore
 
     function forward(network)
 
-        (weight, biasB, biasS, η) = network
-        s = [1.0, 1.0]
+        (weight, biasB, biasS) = network
+        n = zeros(Const.dimB)
+        energy = 0.0
         energyS = 0.0
         energyB = 0.0
-        num = 10000
 
-        for i in 1:num+Const.burnintime
+        for i in 1:Const.burnintime
+            activationB = transpose(weight) * n .+ biasS
+            realactivationB = 2.0 * real(activationB)
+            s = Func.updateS(realactivationB)
+
             activationS = weight * s .+ biasB
-            n = Func.updateB(activationS)
-            activationB = transpose(n) * weight .+ biasS
-            s = Func.updateS(activationB)
-            if i > Const.burnintime
-                energyS += Func.energyS(s)
-                energyB += Func.energyB(n)
-            end
+            realactivationS = 2.0 * real(activationS)
+            n = Func.updateB(realactivationS)
         end
-        energyS /= num
-        energyB /= num
 
-        return energyS, energyB
+        for i in 1:Const.num
+            activationB = transpose(weight) * n .+ biasS
+            realactivationB = 2.0 * real(activationB)
+            s = Func.updateS(realactivationB)
+            s1 = s
+
+            activationS = weight * s .+ biasB
+            realactivationS = 2.0 * real(activationS)
+            n = Func.updateB(realactivationS)
+            n1 = n
+
+            activationB = transpose(weight) * n .+ biasS
+            realactivationB = 2.0 * real(activationB)
+            s = Func.updateS(realactivationB)
+            s2 = s
+
+            activationS = weight * s .+ biasB
+            realactivationS = 2.0 * real(activationS)
+            n = Func.updateB(realactivationS)
+            n2 = n
+
+            eS = Func.hamiltonianS(s2, s1) * 
+            Func.wavefunctionfactorS(s2, n1, s1, weight, biasS)
+            eB = Func.hamiltonianB(n2, n1) * 
+            Func.wavefunctionfactorB(n2, s2, n1, weight, biasB)
+            eI = Func.hamiltonianI(n2, s2, n1, s1) * 
+            Func.wavefunctionfactorI(n2, s2, n1, s1, weight, biasS, biasB)
+            e = eS + eB + eI
+            energy += e
+            energyS += eS
+            energyB += eB
+        end
+        energy /= Const.num
+        energyS /= Const.num
+        energyB /= Const.num
+
+        return energy, energyS, energyB
     end
-end
+
+ end

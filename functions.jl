@@ -93,7 +93,7 @@ module Func
 
         sum = 0.0
         e = [1.0 1.0]
-        for ix in 1:Const.dimS-1
+        for ix in 1:2:Const.dimS-1
             sum += (prod(e .* (s1[ix:ix+1] .!= s2[ix:ix+1])) + 
             prod(1.0im * s1[ix:ix+1] .* (s1[ix:ix+1] .!= s2[ix:ix+1])) + 
             prod(s1[ix:ix+1] .* (s1[ix:ix+1] .== s2[ix:ix+1]))) / 4.0

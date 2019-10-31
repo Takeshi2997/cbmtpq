@@ -9,21 +9,26 @@ dirname = "./data"
 rm(dirname, force=true, recursive=true)
 mkdir(dirname)
 
+weight = Init.weight(Const.dimB, Const.dimS)
+biasB = zeros(Complex{Float32}, Const.dimB)
+biasS = zeros(Complex{Float32}, Const.dimS)
+network = (weight, biasB, biasS) 
+filename = dirname * "/param_at_" * lpad(0, 3, "0") * ".dat"
+open(io -> serialize(io, network), filename, "w")
+
 f = open("error.txt", "w")
-for iϵ in 1:1
+for iϵ in 1:Const.iϵmax-1
 
-    ϵ = 0.5 * (iϵ / 10.0) * Const.dimB * Const.ω
+    ϵ = 0.5 * (iϵ / Const.iϵmax) * Const.dimB * Const.ω
 
+    filenameprev = dirname * "/param_at_" * lpad(iϵ-1, 3, "0") * ".dat"
     filename = dirname * "/param_at_" * lpad(iϵ, 3, "0") * ".dat"
 
     # Initialize weight, bias and η
-    weight = Init.weight(Const.dimB, Const.dimS)
     wmoment = zeros(Complex{Float32}, Const.dimB, Const.dimS)
     wvelocity = zeros(Complex{Float32}, Const.dimB, Const.dimS)
-    biasB = zeros(Complex{Float32}, Const.dimB)
     bmomentB = zeros(Complex{Float32}, Const.dimB)
     bvelocityB = zeros(Complex{Float32}, Const.dimB)
-    biasS = zeros(Complex{Float32}, Const.dimS)
     bmomentS = zeros(Complex{Float32}, Const.dimS)
     bvelocityS = zeros(Complex{Float32}, Const.dimS)
     error = 0.0
@@ -33,10 +38,13 @@ for iϵ in 1:1
     lr = Const.lr
 
     # Define network
-    network = (weight, biasB, biasS)
+    network = open(deserialize, filenameprev)
     
     # Learning
     for it in 1:Const.it_num
+
+        (weight, biasB, biasS) = network
+
         error, energy, energyS, energyB, dweight, dbiasB, 
         dbiasS = MLcore.diff_error(network, ϵ)
 
@@ -52,31 +60,25 @@ for iϵ in 1:1
         bvelocityS += (1.0 - 0.999) * (dbiasS.^2 - bvelocityS)
         biasS -= lr_t * bmomentS ./ (sqrt.(bvelocityS) .+ 1.0 * 10^(-7))
 
-        write(f, string(it))
-        write(f, "\t")
-        write(f, string(real(error)))
-        write(f, "\t")
-        write(f, string(real(energyS)))
-        write(f, "\t")
-        write(f, string(real(energyB)))
-        write(f, "\t")
-        write(f, string(real(energy)))
-        write(f, "\n")
+#        write(f, string(it))
+#        write(f, "\t")
+#        write(f, string(real(error)))
+#        write(f, "\t")
+#        write(f, string(real(energyS)))
+#        write(f, "\t")
+#        write(f, string(real(energyB)))
+#        write(f, "\t")
+#        write(f, string(real(energy)))
+#        write(f, "\n")
 
         network = (weight, biasB, biasS)
     end
 
     # Write error
-#    write(f, string(iϵ))
-#    write(f, "\t")
-#    write(f, string(error))
-#    write(f, "\t")
-#    write(f, string(energyS))
-#    write(f, "\t")
-#    write(f, string(energyB))
-#    write(f, "\t")
-#    write(f, string(energy))
-#    write(f, "\n")
+    write(f, string(iϵ))
+    write(f, "\t")
+    write(f, string(real(error)))
+    write(f, "\n")
     
     open(io -> serialize(io, network), filename, "w")
 end
