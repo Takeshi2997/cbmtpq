@@ -52,41 +52,36 @@ module Func
 
         z = transpose(weight) * n1 .+ biasS
         zstar = conj(z)
-        realz = 2.0 * real(z)
-        action1 = transpose(conj(z)) * s1
-        action2 = transpose(z) * s2
-        marginalfactor = 
-        exp(sum(log.(exp.(realz) .+ exp.(-realz))) / Const.dimS)
-        return marginalfactor * exp(-(action1 + action2))
+        realz = z .+ zstar
+        factor = (2.0 .* cosh.(realz)) ./ 
+        exp.(s2 .* z .+ s1 .* zstar)
+        return exp(sum(log.(factor)) / Const.dimS)
     end
 
     function wavefunctionfactorB(n2, s2, n1, weight, biasB)
 
         z = weight * s2 .+ biasB
         zstar = conj(z)
-        realz = 2.0 * real(z)
-        action1 = transpose(conj(z)) * n1
-        action2 = transpose(z) * n2
-        marginalfactor = exp(sum(log.(1.0 .+ exp.(realz))) / Const.dimB)
-        return marginalfactor * exp(-(action1 + action2))
+        realz = z .+ zstar
+        factor = (1.0 .+ exp.(realz)) ./
+        exp.(n2 .* z .+ n1 .* zstar)
+        return exp(sum(log.(factor)) / Const.dimB)
     end
 
     function wavefunctionfactorI(n2, s2, n1, s1, weight, biasS, biasB)
 
         zS = weight * s2 .+ biasB
-        zB = transpose(weight) * n1 .+biasS
-        zSstar = conj(zS)
-        zBstar = conj(zB)
-        realzS = zS .+ zSstar
-        realzB = zB .+ zBstar
-        action1 = transpose(zS) * n2
-        action2 = transpose(realzS) * n1
-        action3 = transpose(conj(zB)) * s1
-        marginalfactorS = exp(sum(log.(1.0 .+ exp.(realzS))) / Const.dimB)
-        marginalfactorB = 
-        exp(sum(log.(exp.(realzB) .+ exp.(-realzB))) / Const.dimS)
-        return marginalfactorS * marginalfactorB * 
-        exp(-(action1 + action2 + action3))
+        zB = transpose(weight) * n2 .+biasS
+        zSstar = conj(weight * s1 .+ biasB)
+        zBstar = conj(transpose(weight) * n1 .+biasS)
+        realzS = zS .+ conj(zS)
+        realzB = conj(zB) .+ zBstar
+        factor1 =  (2.0 .* cosh.(realzB))./ 
+        exp.(s2 .* zB .+ s2 .* zBstar)
+        factor2 = (1.0 .+ exp.(realzS)) ./
+        exp.(n1 .* zS .+ n1 .* zSstar)
+        return exp(sum(log.(factor1)) / Const.dimS) * 
+        exp(sum(log.(factor2)) / Const.dimB)
     end
 
     function hamiltonianS(s2, s1)
@@ -109,7 +104,8 @@ module Func
     function hamiltonianI(n2, s2, n1, s1)
 
         w = ones(Const.dimB, Const.dimS)
-        n = n1 .* (n1 .!= n2)
+        e = ones(Const.dimB)
+        n = e .* (n1 .!= n2)
         s = s1 .* (s1 == s2) / 2.0
         return - Const.δ * transpose(n) * w * s
     end

@@ -7,6 +7,7 @@ module MLcore
 
         (weight, biasB, biasS) = network
         n = zeros(Const.dimB)
+        s = zeros(Const.dimS)
         energy = 0.0
         energyS = 0.0
         energyB = 0.0
@@ -27,17 +28,10 @@ module MLcore
             n = Func.updateB(realactivationS)
         end
 
+        s1 = s
+        n1 = n
+
         for i in 1:Const.iters_num
-            activationB = transpose(weight) * n .+ biasS
-            realactivationB = 2.0 * real(activationB)
-            s = Func.updateS(realactivationB)
-            s1 = s
-
-            activationS = weight * s .+ biasB
-            realactivationS = 2.0 * real(activationS)
-            n = Func.updateB(realactivationS)
-            n1 = n
-
             activationB = transpose(weight) * n .+ biasS
             realactivationB = 2.0 * real(activationB)
             s = Func.updateS(realactivationB)
@@ -60,10 +54,13 @@ module MLcore
             energyB += eB
             dweight_h +=  (transpose(s1) .* n1 + transpose(s2) .* n2) .* e
             dweight +=  transpose(s1) .* n1 + transpose(s2) .* n2
-            dbiasB_h += n * e
-            dbiasB += n
-            dbiasS_h += s * e
-            dbiasS += s
+            dbiasB_h += (n1 + n2)* e
+            dbiasB += n1 + n2
+            dbiasS_h += (s1 + s2) * e
+            dbiasS += s1 + s2
+
+            s1 = s2
+            n1 = n2
         end
         energy /= Const.iters_num
         energyS /= Const.iters_num

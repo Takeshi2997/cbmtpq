@@ -5,6 +5,6 @@ module Init
 
     function weight(i, j)
 
-        return - ones(Complex{Float32}, i, j) * 10^(-11)
+        return ones(Complex{Float32}, i, j) * 10^(-3)
     end
 end

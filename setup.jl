@@ -23,21 +23,21 @@ module Const
     end
 
     # System Size
-    dimB = 20
-    dimS = 10
+    dimB = 64
+    dimS = 8
 
     # System Param
     ω = 0.2
     J = 0.1
-    δ = 1.0 * 10^(-6)
+    δ = 0.01
 
     # Repeat Number
-    burnintime = 10
-    iters_num = 200
-    it_num = 2000
-    iϵmax = 5
+    burnintime = 100
+    iters_num = 1000
+    it_num = 1200
+    iϵmax = 20
     num = 20000
 
     # Learning Rate
-    lr = 0.00005
+    lr = 0.01
 end
