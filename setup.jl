@@ -1,15 +1,17 @@
 module Const
 
+    using Combinatorics
     struct Param
 
         # System Size
         dimB::Int64
         dimS::Int64
+        sset::Array{Int64}
 
         # System Param
-        ω::Float32
-        J::Float32
-        δ::Float32
+        ω::Float64
+        J::Float64
+        δ::Float64
 
         # Repeat Number
         burnintime::Int64
@@ -19,25 +21,27 @@ module Const
         num::Int64
 
         # Learning Rate
-        lr::Float32
+        lr::Float64
     end
 
     # System Size
-    dimB = 64
-    dimS = 8
+    const dimB = 80
+    const dimS = 2
+    sarray = hcat(ones(Float64, 2^Const.dimS), -ones(Float64, 2^Const.dimS))
+    const sset = collect(multiset_permutations(sarray, dimS))
 
     # System Param
-    ω = 0.2
-    J = 0.1
-    δ = 0.01
+    const ω = 2.0
+    const J = 1.0
+    const δ = 0.001
 
     # Repeat Number
-    burnintime = 100
-    iters_num = 1000
-    it_num = 1200
-    iϵmax = 20
-    num = 20000
+    const burnintime = 50
+    const iters_num = 200
+    const it_num = 1000
+    const iϵmax = 20
+    const num = 2000
 
     # Learning Rate
-    lr = 0.01
+    const lr = 0.0005
 end

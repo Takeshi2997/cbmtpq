@@ -12,21 +12,21 @@ module Func
         return sigmoid(x) .* (1.0 - sigmoid(x))
     end
 
-    function translate(t)
+    function translate(β)
 
-        return Const.dimB * Const.ω / (exp(Const.ω / t) + 1.0)
+        return Const.ω / (exp(Const.ω * β) + 1.0)
     end
 
     function retranslate(ϵ)
 
-        return Const.ω / log(Const.dimB * Const.ω / ϵ - 1.0)
+        return log(Const.ω / ϵ - 1.0) / Const.ω
     end
 
     function updateB(z)
 
-        n = ones(Float32, Const.dimB)
+        n = ones(Float64, Const.dimB)
         prob = 1.0 ./ (1.0 .+ exp.(z))
-        pzero = rand(Float32, Const.dimB)
+        pzero = rand(Float64, Const.dimB)
         for ix in 1:Const.dimB
             if pzero[ix] < prob[ix]
                 n[ix] = 0.0
@@ -37,9 +37,9 @@ module Func
 
     function updateS(z)
 
-        s = -ones(Float32, Const.dimS)
+        s = -ones(Float64, Const.dimS)
         prob = 1.0 ./ (1.0 .+ exp.(-2.0 * z))
-        pup = rand(Float32, Const.dimS)
+        pup = rand(Float64, Const.dimS)
         for ix in 1:Const.dimS
             if pup[ix] < prob[ix]
                 s[ix] = 1.0
@@ -48,66 +48,44 @@ module Func
         return s
     end
 
-    function wavefunctionfactorS(s2, n1, s1, weight, biasS)
+    function energyS(inputs, z)
 
-        z = transpose(weight) * n1 .+ biasS
-        zstar = conj(z)
-        realz = z .+ zstar
-        factor = (2.0 .* cosh.(realz)) ./ 
-        exp.(s2 .* z .+ s1 .* zstar)
-        return exp(sum(log.(factor)) / Const.dimS)
-    end
-
-    function wavefunctionfactorB(n2, s2, n1, weight, biasB)
-
-        z = weight * s2 .+ biasB
-        zstar = conj(z)
-        realz = z .+ zstar
-        factor = (1.0 .+ exp.(realz)) ./
-        exp.(n2 .* z .+ n1 .* zstar)
-        return exp(sum(log.(factor)) / Const.dimB)
-    end
-
-    function wavefunctionfactorI(n2, s2, n1, s1, weight, biasS, biasB)
-
-        zS = weight * s2 .+ biasB
-        zB = transpose(weight) * n2 .+biasS
-        zSstar = conj(weight * s1 .+ biasB)
-        zBstar = conj(transpose(weight) * n1 .+biasS)
-        realzS = zS .+ conj(zS)
-        realzB = conj(zB) .+ zBstar
-        factor1 =  (2.0 .* cosh.(realzB))./ 
-        exp.(s2 .* zB .+ s2 .* zBstar)
-        factor2 = (1.0 .+ exp.(realzS)) ./
-        exp.(n1 .* zS .+ n1 .* zSstar)
-        return exp(sum(log.(factor1)) / Const.dimS) * 
-        exp(sum(log.(factor2)) / Const.dimB)
-    end
-
-    function hamiltonianS(s2, s1)
-
-        sum = 0.0
-        e = [1.0 1.0]
-        for ix in 1:2:Const.dimS-1
-            sum += (prod(e .* (s1[ix:ix+1] .!= s2[ix:ix+1])) + 
-            prod(1.0im * s1[ix:ix+1] .* (s1[ix:ix+1] .!= s2[ix:ix+1])) + 
-            prod(s1[ix:ix+1] .* (s1[ix:ix+1] .== s2[ix:ix+1]))) / 4.0
+        sum = 0.0 + 0.0im
+        e = [1.0 + 0.0im, 1.0 + 0.0im]
+        for s in Const.sset
+            localsum = 0.0 + 0.0im
+            for ix in 1:2:Const.dimS
+                localsum += prod(e .* (s[ix:ix+1] .!= inputs[ix:ix+1])) + 
+                            prod(1.0im .* s[ix:ix+1] .* (s[ix:ix+1] .!= inputs[ix:ix+1])) +
+                            prod(s[ix:ix+1] .* (s[ix:ix+1] .== inputs[ix:ix+1]))
+            end
+            localsum = localsum / 4.0 * exp(transpose(z) * s)
+            sum += localsum
         end
-        return -Const.J * sum
+
+        return -Const.J * sum / exp(transpose(z) * inputs)
     end
 
-    function hamiltonianB(n2, n1)
+    function energyB(inputn, z)
 
-        return Const.ω * sum(n1[n1 .== n2])
+        wf = exp.(z)
+        nf = exp(transpose(inputn) * z)
+        return Const.ω * sum(wf .* (inputn .== 1.0)) / nf
     end
 
-    function hamiltonianI(n2, s2, n1, s1)
+    function energyI(inputn, inputs, weight, biasB, biasS)
 
-        w = ones(Const.dimB, Const.dimS)
+        ematrix = ones(Const.dimB, Const.dimS)
         e = ones(Const.dimB)
-        n = e .* (n1 .!= n2)
-        s = s1 .* (s1 == s2) / 2.0
-        return - Const.δ * transpose(n) * w * s
+        nf = exp(transpose(inputn) * weight * inputs + 
+                 transpose(inputn) * biasB + transpose(biasS) * inputs)
+        n = -inputn .+ 1.0
+        s = inputs
+
+        sum = transpose(n) * ematrix * s
+        factor = exp(transpose(n) * weight * s + 
+                     transpose(n) * biasB + transpose(biasS) * s)
+        return Const.δ * sum * factor / nf
     end
 
     function hamiltonian(n2, s2, n1, s1)

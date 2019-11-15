@@ -3,8 +3,8 @@ module Init
     include("./functions.jl")
     using .Const, .Func, LinearAlgebra, ComplexValues
 
-    function weight(i, j)
+    function w()
 
-        return ones(Complex{Float32}, i, j) * 10^(-3)
+        return ones(Complex{Float64}, Const.dimB, Const.dimS) * 10.0^(-6)
     end
 end
