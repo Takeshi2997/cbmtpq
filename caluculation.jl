@@ -8,7 +8,7 @@ function calculate()
     dirname = "./data"
     
     f = open("energy_data.txt", "w")
-    for iϵ in 1:Const.iϵmax
+    for iϵ in 1:1# Const.iϵmax
     
         filename = dirname * "/param_at_" * lpad(iϵ, 3, "0") * ".dat"
         network = open(deserialize, filename)

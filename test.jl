@@ -10,5 +10,4 @@ biasB      = zeros(Complex{Float64}, Const.dimB)
 biasS      = zeros(Complex{Float64}, Const.dimS)
  
 network = (weight, biasB, biasS)
-
-@code_warntype MLcore.diff_error(network, 0.0)
+println(Const.sset)

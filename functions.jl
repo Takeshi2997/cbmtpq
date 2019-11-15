@@ -52,21 +52,39 @@ module Func
 
         sum = 0.0 + 0.0im
         e = [1.0 + 0.0im, 1.0 + 0.0im]
-        for s in Const.sset
+        for ix in 1:2:Const.dimS
             localsum = 0.0 + 0.0im
-            for ix in 1:2:Const.dimS
-                localsum += prod(e .* (s[ix:ix+1] .!= inputs[ix:ix+1])) + 
-                            prod(1.0im .* s[ix:ix+1] .* (s[ix:ix+1] .!= inputs[ix:ix+1])) +
-                            prod(s[ix:ix+1] .* (s[ix:ix+1] .== inputs[ix:ix+1]))
+            for s in Const.sset
+                localsum += (prod(e .* (s .!= inputs[ix:ix+1])) + 
+                            prod(1.0im .* s .* (s .!= inputs[ix:ix+1])) +
+                            prod(s .* (s .== inputs[ix:ix+1]))) / 
+                4.0 * exp(transpose(z[ix:ix+1]) * (s - inputs[ix:ix+1]))
             end
-            localsum = localsum / 4.0 * exp(transpose(z) * s)
             sum += localsum
         end
 
-        return -Const.J * sum / exp(transpose(z) * inputs)
+        return -Const.J * sum + 0.25 * Const.dimS
     end
 
-    function energyB(inputn, z)
+    function hamiltonianS(inputs, z)
+
+        sum = 0.0 + 0.0im
+        e = [1.0 + 0.0im, 1.0 + 0.0im]
+        for ix in 1:2:Const.dimS
+            localsum = 0.0 + 0.0im
+            for s in Const.sset
+                localsum += (prod(e .* (s .!= inputs[ix:ix+1])) + 
+                            prod(1.0im .* s .* (s .!= inputs[ix:ix+1])) +
+                            prod(s .* (s .== inputs[ix:ix+1]))) / 
+                4.0 * exp(transpose(z[ix:ix+1]) * (s - inputs[ix:ix+1]))
+            end
+            sum += localsum
+        end
+
+       return -Const.J * sum / exp(transpose(z) * inputs)
+    end
+
+   function energyB(inputn, z)
 
         wf = exp.(z)
         nf = exp(transpose(inputn) * z)

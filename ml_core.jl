@@ -46,7 +46,7 @@ module MLcore
             energyB   += eB
             dweight_h +=  transpose(s) .* n .* e
             dweight   +=  transpose(s) .* n
-            dbiasB_h  += n* e
+            dbiasB_h  += n * e
             dbiasB    += n
             dbiasS_h  += s * e
             dbiasS    += s
@@ -97,7 +97,7 @@ module MLcore
             realactivationS = 2.0 * real(activationS)
             n = Func.updateB(realactivationS)
 
-            eS = Func.energyS(s, activationB)
+            eS = Func.hamiltonianS(s, activationB)
             eB = Func.energyB(n, activationS)
             eI = Func.energyI(n, s, weight, biasB, biasS)
             e  = eS + eB + eI
