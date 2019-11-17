@@ -1,13 +1,20 @@
 include("./setup.jl")
-include("./initialize.jl")
 include("./functions.jl")
 include("./ml_core.jl")
-using .Const, .Init, .Func, LinearAlgebra, Serialization,
+using .Const, .Func, LinearAlgebra, Serialization,
 Combinatorics, InteractiveUtils, .MLcore
 
-weight     = Init.w()
-biasB      = zeros(Complex{Float64}, Const.dimB)
-biasS      = zeros(Complex{Float64}, Const.dimS)
- 
-network = (weight, biasB, biasS)
-println(Const.sset)
+A = -[1 0 0 0
+     0 -1 2 0
+     0 2 -1 0
+     0 0 0 1] ./ 4.0
+B = -[0 0 0 0
+     0 -2 2 0
+     0 2 -2 0
+     0 0 0 0] ./ 4.0
+display(A)
+println()
+println(eigvals(A))
+display(B)
+println()
+println(eigvals(B))

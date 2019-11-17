@@ -5,27 +5,22 @@ include("./functions.jl")
 using .Const, .MLcore, .Init, .Func, LinearAlgebra, Serialization, InteractiveUtils
 
 function main()
-    
-    # Make data file
+
     dirname = "./data"
-    rm(dirname, force=true, recursive=true)
-    mkdir(dirname)
 
     f = open("error.txt", "w")
-    for iϵ in 1:1 # Const.iϵmax
+    for iϵ in 2:2 #Const.iϵmax
     
-        ϵ = 0.2 * (Float64(iϵ) / Const.iϵmax) * Const.ω * Const.dimB
+        ϵ = 0.2 * iϵ / Const.iϵmax * Const.ω * Const.dimB
 
         filename = dirname * "/param_at_" * lpad(iϵ, 3, "0") * ".dat"
-    
+        filenameinit = dirname * "/param_at_000.dat"
+
         # Initialize weight, bias
-        weight     = Init.w()
         wmoment    = zeros(Complex{Float64}, Const.dimB, Const.dimS)
         wvelocity  = zeros(Complex{Float64}, Const.dimB, Const.dimS)
-        biasB      = zeros(Complex{Float64}, Const.dimB)
         bmomentB   = zeros(Complex{Float64}, Const.dimB)
         bvelocityB = zeros(Complex{Float64}, Const.dimB)
-        biasS      = zeros(Complex{Float64}, Const.dimS)
         bmomentS   = zeros(Complex{Float64}, Const.dimS)
         bvelocityS = zeros(Complex{Float64}, Const.dimS)
         error   = 0.0
@@ -35,7 +30,7 @@ function main()
         lr = Const.lr
     
         # Define network
-        network = (weight, biasB, biasS)
+        network = open(deserialize, filenameinit)
 
         # Learning
         for it in 1:Const.it_num
@@ -46,7 +41,8 @@ function main()
             dbiasS = MLcore.diff_error(network, ϵ)
 
             # Adam
-            lr_t = lr * sqrt(1.0 - 0.999^it) / (1.0 - 0.9^it)
+            lr_t = lr * sqrt(1.0 - 0.999^(it + (iϵ - 1) * Const.it_num)) / 
+            (1.0 - 0.9^(it + (iϵ - 1) * Const.it_num))
             wmoment    += (1.0 - 0.9) * (dweight - wmoment)
             wvelocity  += (1.0 - 0.999) * (dweight.^2 - wvelocity)
             weight     -= lr_t * wmoment ./ (sqrt.(wvelocity) .+ 1.0 * 10^(-7))
@@ -56,7 +52,7 @@ function main()
             bmomentS   += (1.0 - 0.9) * (dbiasS - bmomentS)
             bvelocityS += (1.0 - 0.999) * (dbiasS.^2 - bvelocityS)
             biasS      -= lr_t * bmomentS ./ (sqrt.(bvelocityS) .+ 1.0 * 10^(-7))
-    
+
             write(f, string(it))
             write(f, "\t")
             write(f, string(real(error)))
@@ -67,10 +63,10 @@ function main()
             write(f, "\t")
             write(f, string(real(energy / (Const.dimS + Const.dimB))))
             write(f, "\n")
-    
+
             network = (weight, biasB, biasS)
         end
-    
+   
         # Write error
 #        write(f, string(iϵ))
 #        write(f, "\t")
@@ -80,12 +76,13 @@ function main()
 #        write(f, "\t")
 #        write(f, string(real(energyS / Const.dimS)))
 #        write(f, "\n")
-        
+       
         open(io -> serialize(io, network), filename, "w")
     end
     close(f)
 end
 
-main()
+Init.network()
+@time main()
 
 

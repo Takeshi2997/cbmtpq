@@ -48,6 +48,25 @@ module Func
         return s
     end
 
+    function energyS_shift(inputs, z)
+
+        sum = 0.0 + 0.0im
+        e = [1.0 + 0.0im, 1.0 + 0.0im]
+        for ix in 1:2:Const.dimS
+            localsum = 0.0 + 0.0im
+            for s in Const.sset
+                localsum += (prod(e .* (s .!= inputs[ix:ix+1])) + 
+                             prod(1.0im .* s .* (s .!= inputs[ix:ix+1])) +
+                             prod(s .* (s .== inputs[ix:ix+1])) - 
+                             prod(e .* (s .== inputs[ix:ix+1]))) / 
+                4.0 * exp(transpose(z[ix:ix+1]) * (s - inputs[ix:ix+1]))
+            end
+            sum += localsum
+        end
+
+        return -Const.J * sum
+    end
+
     function energyS(inputs, z)
 
         sum = 0.0 + 0.0im
@@ -63,32 +82,12 @@ module Func
             sum += localsum
         end
 
-        return -Const.J * sum + 0.25 * Const.dimS
-    end
-
-    function hamiltonianS(inputs, z)
-
-        sum = 0.0 + 0.0im
-        e = [1.0 + 0.0im, 1.0 + 0.0im]
-        for ix in 1:2:Const.dimS
-            localsum = 0.0 + 0.0im
-            for s in Const.sset
-                localsum += (prod(e .* (s .!= inputs[ix:ix+1])) + 
-                            prod(1.0im .* s .* (s .!= inputs[ix:ix+1])) +
-                            prod(s .* (s .== inputs[ix:ix+1]))) / 
-                4.0 * exp(transpose(z[ix:ix+1]) * (s - inputs[ix:ix+1]))
-            end
-            sum += localsum
-        end
-
-       return -Const.J * sum / exp(transpose(z) * inputs)
+       return -Const.J * sum
     end
 
    function energyB(inputn, z)
 
-        wf = exp.(z)
-        nf = exp(transpose(inputn) * z)
-        return Const.ω * sum(wf .* (inputn .== 1.0)) / nf
+        return Const.ω * sum(inputn)
     end
 
     function energyI(inputn, inputs, weight, biasB, biasS)
@@ -104,12 +103,5 @@ module Func
         factor = exp(transpose(n) * weight * s + 
                      transpose(n) * biasB + transpose(biasS) * s)
         return Const.δ * sum * factor / nf
-    end
-
-    function hamiltonian(n2, s2, n1, s1)
-
-        out = hamiltonianS(s2, s1) + hamiltonianB(n2, n1) + 
-        hamiltonianI(n2, s2, n1, s1)
-        return out
     end
 end
