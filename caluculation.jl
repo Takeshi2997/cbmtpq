@@ -10,9 +10,9 @@ function calculate()
     for iϵ in 1:Const.iϵmax
 
         filename = dirname * "/param_at_" * lpad(iϵ, 3, "0") * ".dat"
-        network = open(deserialize, filename)
+        params = open(deserialize, filename)
 
-        energy, energyS, energyB = MLcore.forward(network)
+        energy, energyS, energyB = MLcore.forward(params...)
         β = Func.retranslate(real(energyB) / Const.dimB)
     
         # Write energy

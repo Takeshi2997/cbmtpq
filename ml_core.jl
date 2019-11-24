@@ -3,11 +3,10 @@ module MLcore
     include("./functions.jl")
     using .Const, .Func, LinearAlgebra
 
-    function diff_error(network, ϵ)
+    function diff_error(weight, biasB, biasS, ϵ)
 
-        (weight, biasB, biasS) = network
-        n = zeros(Const.dimB)
-        s = zeros(Const.dimS)
+        n = zeros(Float64, Const.dimB)
+        s = zeros(Float64, Const.dimS)
         energy  = 0.0
         energyS = 0.0
         energyB = 0.0
@@ -37,7 +36,7 @@ module MLcore
             realactivationS = 2.0 * real(activationS)
             n = Func.updateB(realactivationS)
 
-            eS = Func.energyS(s, activationB)
+            eS = Func.energyS_shift(s, activationB)
             eB = Func.energyB(n, activationS)
             eI = Func.energyI(n, s, weight, biasB, biasS)
             e  = eS + eB + eI
@@ -70,9 +69,8 @@ module MLcore
         diff_weight, diff_biasB, diff_biasS
     end
 
-    function forward(network)
+    function forward(weight, biasB, biasS)
 
-        (weight, biasB, biasS) = network
         n = zeros(Const.dimB)
         energy  = 0.0
         energyS = 0.0

@@ -1,8 +1,7 @@
 include("./setup.jl")
 include("./ml_core.jl")
-include("./initialize.jl")
 include("./functions.jl")
-using .Const, .MLcore, .Init, .Func, LinearAlgebra, Serialization, InteractiveUtils
+using .Const, .MLcore, .Func, LinearAlgebra, Serialization, InteractiveUtils
 
 mutable struct Network
 
@@ -11,7 +10,7 @@ mutable struct Network
     biasS::Array{Complex{Float64}, 1}
 end
 
-function main()
+function mainrepeat()
 
     dirname = "./data"
 
@@ -21,7 +20,6 @@ function main()
         ϵ = 0.2 * Float64(Const.iϵmax - iϵ + 1) / Const.iϵmax * Const.ω * Const.dimB
 
         filename = dirname * "/param_at_" * lpad(iϵ, 3, "0") * ".dat"
-        filenameinit = dirname * "/param_at_000.dat"
 
         # Initialize weight, bias
         wmoment    = zeros(Complex{Float64}, Const.dimB, Const.dimS)
@@ -37,7 +35,7 @@ function main()
         lr = Const.lr
     
         # Define network
-        params = open(deserialize, filenameinit)
+        params = open(deserialize, filename)
         network = Network(params...)
 
         # Learning
@@ -58,16 +56,6 @@ function main()
             bvelocityS     += (1.0 - 0.999) * (dbiasS.^2 - bvelocityS)
             network.biasS  -= lr_t * bmomentS ./ (sqrt.(bvelocityS) .+ 1.0 * 10^(-7))
 
-#            write(f, string(it))
-#            write(f, "\t")
-#            write(f, string(real(error)))
-#            write(f, "\t")
-#            write(f, string(real(energyS / Const.dimS)))
-#            write(f, "\t")
-#            write(f, string(real(energyB / Const.dimB)))
-#            write(f, "\t")
-#            write(f, string(real(energy / (Const.dimS + Const.dimB))))
-#            write(f, "\n")
         end
    
         # Write error
@@ -86,6 +74,6 @@ function main()
     close(f)
 end
 
-Init.network()
-@time main()
-
+for n in 1:20
+    @time mainrepeat()
+end
