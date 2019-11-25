@@ -32,7 +32,7 @@ function mainrepeat()
         energyS = 0.0
         energyB = 0.0
         energy  = 0.0
-        lr = Const.lr
+        lr = Const.lr_repeat
     
         # Define network
         params = open(deserialize, filename)
@@ -44,17 +44,13 @@ function mainrepeat()
             error, energy, energyS, energyB, dweight, dbiasB, dbiasS = 
             MLcore.diff_error(network.weight, network.biasB, network.biasS, ϵ)
 
-            # Adam
-            lr_t = lr * sqrt(1.0 - 0.999^it) / (1.0 - 0.9^it)
-            wmoment        += (1.0 - 0.9) * (dweight - wmoment)
-            wvelocity      += (1.0 - 0.999) * (dweight.^2 - wvelocity)
-            network.weight -= lr_t * wmoment ./ (sqrt.(wvelocity) .+ 1.0 * 10^(-7))
-            bmomentB       += (1.0 - 0.9) * (dbiasB - bmomentB)
-            bvelocityB     += (1.0 - 0.999) * (dbiasB.^2 - bvelocityB)
-            network.biasB  -= lr_t * bmomentB ./ (sqrt.(bvelocityB) .+ 1.0 * 10^(-7))
-            bmomentS       += (1.0 - 0.9) * (dbiasS - bmomentS)
-            bvelocityS     += (1.0 - 0.999) * (dbiasS.^2 - bvelocityS)
-            network.biasS  -= lr_t * bmomentS ./ (sqrt.(bvelocityS) .+ 1.0 * 10^(-7))
+            # Momentum
+            wmoment = 0.9 * wmoment - lr * dweight
+            network.weight += wmoment
+            bmomentS = 0.9 * bmomentS - lr * dbiasS
+            network.biasS += bmomentS
+            bmomentB = 0.9 * bmomentB - lr * dbiasB
+            network.biasB += bmomentB
 
         end
    
@@ -74,6 +70,6 @@ function mainrepeat()
     close(f)
 end
 
-for n in 1:20
+for i in 1:5
     @time mainrepeat()
 end

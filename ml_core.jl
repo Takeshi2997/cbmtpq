@@ -36,7 +36,7 @@ module MLcore
             realactivationS = 2.0 * real(activationS)
             n = Func.updateB(realactivationS)
 
-            eS = Func.energyS_shift(s, activationB)
+            eS = Func.energyS(s, activationB)
             eB = Func.energyB(n, activationS)
             eI = Func.energyI(n, s, weight, biasB, biasS)
             e  = eS + eB + eI

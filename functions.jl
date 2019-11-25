@@ -53,15 +53,13 @@ module Func
         sum = 0.0 + 0.0im
         e = [1.0 + 0.0im, 1.0 + 0.0im]
         for ix in 1:2:Const.dimS
-            localsum = 0.0 + 0.0im
             for s in Const.sset
-                localsum += (prod(e .* (s .!= inputs[ix:ix+1])) + 
-                             prod(1.0im .* s .* (s .!= inputs[ix:ix+1])) +
-                             prod(s .* (s .== inputs[ix:ix+1])) - 
-                             prod(e .* (s .== inputs[ix:ix+1]))) / 
+                sum += (prod(e .* (s .!= inputs[ix:ix+1])) + 
+                        prod(1.0im .* s .* (s .!= inputs[ix:ix+1])) +
+                        prod(s .* (s .== inputs[ix:ix+1])) - 
+                        prod(e .* (s .== inputs[ix:ix+1]))) / 
                 4.0 * exp(transpose(z[ix:ix+1]) * (s - inputs[ix:ix+1]))
             end
-            sum += localsum
         end
 
         return -Const.J * sum
@@ -72,14 +70,12 @@ module Func
         sum = 0.0 + 0.0im
         e = [1.0 + 0.0im, 1.0 + 0.0im]
         for ix in 1:2:Const.dimS
-            localsum = 0.0 + 0.0im
             for s in Const.sset
-                localsum += (prod(e .* (s .!= inputs[ix:ix+1])) + 
-                            prod(1.0im .* s .* (s .!= inputs[ix:ix+1])) +
-                            prod(s .* (s .== inputs[ix:ix+1]))) / 
+                sum += (prod(e .* (s .!= inputs[ix:ix+1])) + 
+                        prod(1.0im .* s .* (s .!= inputs[ix:ix+1])) +
+                        prod(s .* (s .== inputs[ix:ix+1]))) / 
                 4.0 * exp(transpose(z[ix:ix+1]) * (s - inputs[ix:ix+1]))
             end
-            sum += localsum
         end
 
        return -Const.J * sum
@@ -96,12 +92,12 @@ module Func
         e = ones(Const.dimB)
         nf = exp(transpose(inputn) * weight * inputs + 
                  transpose(inputn) * biasB + transpose(biasS) * inputs)
-        n = -inputn .+ 1.0
+        reversen = -inputn .+ 1.0
         s = inputs
 
-        sum = transpose(n) * ematrix * s
-        factor = exp(transpose(n) * weight * s + 
-                     transpose(n) * biasB + transpose(biasS) * s)
+        sum = transpose(reversen) * ematrix * s
+        factor = exp(transpose(reversen) * weight * s + 
+                     transpose(reversen) * biasB + transpose(biasS) * s)
         return Const.δ * sum * factor / nf
     end
 end
