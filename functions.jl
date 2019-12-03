@@ -2,26 +2,6 @@ module Func
     include("./setup.jl")
     using .Const, LinearAlgebra
 
-    function sigmoid(x)
-
-        return 1 ./ (exp.(-x) .+ 1.0)
-    end
-
-    function diff_sigmoid(x)
-
-        return sigmoid(x) .* (1.0 - sigmoid(x))
-    end
-
-    function translate(β)
-
-        return Const.ω / (exp(Const.ω * β) + 1.0)
-    end
-
-    function retranslate(ϵ)
-
-        return log(Const.ω / ϵ - 1.0) / Const.ω
-    end
-
     function updateB(z)
 
         n = ones(Float64, Const.dimB)
@@ -48,28 +28,11 @@ module Func
         return s
     end
 
-    function energyS_shift(inputs, z)
-
-        sum = 0.0 + 0.0im
-        e = [1.0 + 0.0im, 1.0 + 0.0im]
-        for ix in 1:2:Const.dimS
-            for s in Const.sset
-                sum += (prod(e .* (s .!= inputs[ix:ix+1])) + 
-                        prod(1.0im .* s .* (s .!= inputs[ix:ix+1])) +
-                        prod(s .* (s .== inputs[ix:ix+1])) - 
-                        prod(e .* (s .== inputs[ix:ix+1]))) / 
-                4.0 * exp(transpose(z[ix:ix+1]) * (s - inputs[ix:ix+1]))
-            end
-        end
-
-        return -Const.J * sum
-    end
-
     function energyS(inputs, z)
 
         sum = 0.0 + 0.0im
         e = [1.0 + 0.0im, 1.0 + 0.0im]
-        for ix in 1:2:Const.dimS
+        for ix in 1:Const.systemsize:Const.dimS
             for s in Const.sset
                 sum += (prod(e .* (s .!= inputs[ix:ix+1])) + 
                         prod(1.0im .* s .* (s .!= inputs[ix:ix+1])) +
@@ -78,26 +41,45 @@ module Func
             end
         end
 
-       return -Const.J * sum
+        return -Const.J * sum / Const.copysize
     end
 
-   function energyB(inputn, z)
+    function control(n, z)
+   
+        s = -(n .- 1.0 / 2.0) * 2.0
+        out = 0.0
+        if n[1] != n[2]
+            out += exp(transpose(s) * z)
+        end
 
-        return Const.ω * sum(inputn)
+        return out
+    end
+    
+    function energyB(inputn, z)
+
+        moment = 0.0 + 0.0im
+        for iy in 1:Const.dimB-1
+            moment += control(inputn[iy:iy+1], z[iy:iy+1])
+        end
+        moment += control(inputn[end:-Const.dimB+1:1], z[end:-Const.dimB+1:1])
+
+        return -Const.t * moment
+    end
+
+    function numberB(inputn)
+
+        return sum(inputn)
     end
 
     function energyI(inputn, inputs, weight, biasB, biasS)
 
-        ematrix = ones(Const.dimB, Const.dimS)
-        e = ones(Const.dimB)
-        nf = exp(transpose(inputn) * weight * inputs + 
-                 transpose(inputn) * biasB + transpose(biasS) * inputs)
-        reversen = -inputn .+ 1.0
-        s = inputs
+        num = 0.0
+        for ix in 1:Const.dimS
+            for iy in 1:Const.dimB
+                num += exp(-inputs[ix] * (weight[ix,iy] + biasB[iy] + biasS[ix]))
+            end
+        end
 
-        sum = transpose(reversen) * ematrix * s
-        factor = exp(transpose(reversen) * weight * s + 
-                     transpose(reversen) * biasB + transpose(biasS) * s)
-        return Const.δ * sum * factor / nf
+        return Const.δ * num
     end
 end

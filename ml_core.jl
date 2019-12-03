@@ -10,6 +10,7 @@ module MLcore
         energy  = 0.0
         energyS = 0.0
         energyB = 0.0
+        numberB = 0.0
         dweight_h = zeros(Complex{Float64}, Const.dimB, Const.dimS)
         dweight   = zeros(Complex{Float64}, Const.dimB, Const.dimS)
         dbiasB_h  = zeros(Complex{Float64}, Const.dimB)
@@ -39,10 +40,12 @@ module MLcore
             eS = Func.energyS(s, activationB)
             eB = Func.energyB(n, activationS)
             eI = Func.energyI(n, s, weight, biasB, biasS)
+            nB = Func.numberB(n)
             e  = eS + eB + eI
             energy    += e
             energyS   += eS
             energyB   += eB
+            numberB   += nB
             dweight_h += transpose(s) .* n .* e
             dweight   += transpose(s) .* n
             dbiasB_h  += n * e
@@ -53,6 +56,7 @@ module MLcore
         energy    /= Const.iters_num
         energyS   /= Const.iters_num
         energyB   /= Const.iters_num
+        numberB   /= Const.iters_num
         dweight_h /= Const.iters_num
         dweight   /= Const.iters_num
         dbiasB_h  /= Const.iters_num
@@ -65,7 +69,7 @@ module MLcore
         diff_biasB  = 2.0 * (energy - ϵ) * (dbiasB_h - energy * dbiasB)
         diff_biasS  = 2.0 * (energy - ϵ) * (dbiasS_h - energy * dbiasS)
 
-        return error, energy, energyS, energyB,
+        return error, energyS, energyB, numberB, 
         diff_weight, diff_biasB, diff_biasS
     end
 
@@ -75,6 +79,7 @@ module MLcore
         energy  = 0.0
         energyS = 0.0
         energyB = 0.0
+        numberB = 0.0
 
         for i in 1:Const.burnintime
             activationB = transpose(weight) * n .+ biasS
@@ -98,16 +103,19 @@ module MLcore
             eS = Func.energyS(s, activationB)
             eB = Func.energyB(n, activationS)
             eI = Func.energyI(n, s, weight, biasB, biasS)
+            nB = Func.numberB(n)
             e  = eS + eB + eI
             energy  += e
             energyS += eS
             energyB += eB
+            numberB += nB
         end
 
         energy  /= Const.num
         energyS /= Const.num
         energyB /= Const.num
+        numberB /= Const.num
 
-        return energy, energyS, energyB
+        return energy, energyS, energyB, numberB
     end
 end
