@@ -18,19 +18,19 @@ function main()
     f = open("error.txt", "w")
     for iϵ in 1:1 #Const.iϵmax
     
-        ϵ = -(0.5 +  0.5 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dimB
+        ϵ = (0.5 - 0.5 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dim
 
         filename = dirname * "/param_at_" * lpad(iϵ, 3, "0") * ".dat"
         filenameinit = dirname * "/param_at_" * lpad(iϵ-1, 3, "0") * ".dat"
 #        filenameinit = dirname * "/param_at_000.dat"
 
         # Initialize weight, bias
-        wmoment    = zeros(Complex{Float64}, Const.dimB, Const.dimS)
-        wvelocity  = zeros(Complex{Float64}, Const.dimB, Const.dimS)
-        bmomentB   = zeros(Complex{Float64}, Const.dimB)
-        bvelocityB = zeros(Complex{Float64}, Const.dimB)
-        bmomentS   = zeros(Complex{Float64}, Const.dimS)
-        bvelocityS = zeros(Complex{Float64}, Const.dimS)
+        wmoment    = zeros(Complex{Float64}, Const.dim, Const.dim)
+        wvelocity  = zeros(Complex{Float64}, Const.dim, Const.dim)
+        bmomentB   = zeros(Complex{Float64}, Const.dim)
+        bvelocityB = zeros(Complex{Float64}, Const.dim)
+        bmomentS   = zeros(Complex{Float64}, Const.dim)
+        bvelocityS = zeros(Complex{Float64}, Const.dim)
         error   = 0.0
         energyS = 0.0
         energyB = 0.0
@@ -44,7 +44,7 @@ function main()
         # Learning
         for it in 1:Const.it_num
     
-            error, energyS, energyB, numberB, dweight, dbiasB, dbiasS = 
+            error, energyS, energyB, dweight, dbiasB, dbiasS = 
             MLcore.diff_error(network.weight, network.biasB, network.biasS, ϵ)
 
             # Optimize
@@ -64,7 +64,7 @@ function main()
             bmomentS        = 0.9 * bmomentS - lr * dbiasS
             network.biasS  += bmomentS
             bmomentB        = 0.9 * bmomentB - lr * dbiasB
-            network.biasB   += bmomentB
+            network.biasB  += bmomentB
 
             write(f, string(it))
             write(f, "\t")
@@ -72,9 +72,7 @@ function main()
             write(f, "\t")
             write(f, string(real(energyS / Const.systemsize)))
             write(f, "\t")
-            write(f, string(real(energyB / Const.dimB)))
-            write(f, "\t")
-            write(f, string(real(numberB / Const.dimB)))
+            write(f, string(real(energyB / Const.dim)))
             write(f, "\n")
         end
    
@@ -83,11 +81,11 @@ function main()
 #        write(f, "\t")
 #        write(f, string(real(error)))
 #        write(f, "\t")
-#        write(f, string(real(energyB / Const.dimB)))
+#        write(f, string(real(energyB / Const.dim)))
 #        write(f, "\t")
 #        write(f, string(real(energyS / Const.systemsize)))
 #        write(f, "\t")
-#        write(f, string(real(numberB / Const.dimB)))
+#        write(f, string(real(numberB / Const.dim)))
 #        write(f, "\n")
 
         params = (network.weight, network.biasB, network.biasS)

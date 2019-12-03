@@ -2,25 +2,12 @@ module Func
     include("./setup.jl")
     using .Const, LinearAlgebra
 
-    function updateB(z)
+    function update(z)
 
-        n = ones(Float64, Const.dimB)
-        prob = 1.0 ./ (1.0 .+ exp.(z))
-        pzero = rand(Float64, Const.dimB)
-        for ix in 1:Const.dimB
-            if pzero[ix] < prob[ix]
-                n[ix] = 0.0
-            end
-        end
-        return n
-    end
-
-    function updateS(z)
-
-        s = -ones(Float64, Const.dimS)
+        s = -ones(Float64, Const.dim)
         prob = 1.0 ./ (1.0 .+ exp.(-2.0 * z))
-        pup = rand(Float64, Const.dimS)
-        for ix in 1:Const.dimS
+        pup = rand(Float64, Const.dim)
+        for ix in 1:Const.dim
             if pup[ix] < prob[ix]
                 s[ix] = 1.0
             end
@@ -28,55 +15,53 @@ module Func
         return s
     end
 
+    function hS(s, z)
+
+        out = 0.0
+        if s[1] != s[2]
+            out += (-1.0 + exp(-2.0 * transpose(z) * s)) / 2.0
+        end
+
+        return out
+    end
+
     function energyS(inputs, z)
 
         sum = 0.0 + 0.0im
-        e = [1.0 + 0.0im, 1.0 + 0.0im]
-        for ix in 1:Const.systemsize:Const.dimS
-            for s in Const.sset
-                sum += (prod(e .* (s .!= inputs[ix:ix+1])) + 
-                        prod(1.0im .* s .* (s .!= inputs[ix:ix+1])) +
-                        prod(s .* (s .== inputs[ix:ix+1]))) / 
-                4.0 * exp(transpose(z[ix:ix+1]) * (s - inputs[ix:ix+1]))
-            end
+        for ix in 1:2:Const.dim-1
+            sum += hS(inputs[ix:ix+1], z[ix:ix+1])
         end
 
         return -Const.J * sum / Const.copysize
     end
 
-    function control(n, z)
-   
-        s = -(n .- 1.0 / 2.0) * 2.0
-        out = 0.0
-        if n[1] != n[2]
-            out += exp(transpose(s) * z)
+    function hB(s, z)
+
+        out = 1.0 / 2.0
+        if s[1] != s[2]
+            out *= 1.0 + exp(-2.0 * transpose(s) * z)
         end
 
         return out
     end
-    
-    function energyB(inputn, z)
 
-        moment = 0.0 + 0.0im
-        for iy in 1:Const.dimB-1
-            moment += control(inputn[iy:iy+1], z[iy:iy+1])
+    function energyB(inputs, z)
+
+        sum = 0.0 + 0.0im
+        for ix in 1:Const.dim-1
+            sum += hB(inputs[ix:ix+1], z[ix:ix+1])
         end
-        moment += control(inputn[end:-Const.dimB+1:1], z[end:-Const.dimB+1:1])
+        sum += hB(inputs[end:-Const.dim+1:1], z[end:-Const.dim+1:1])
 
-        return -Const.t * moment
+        return 2.0 * Const.t * sum
     end
 
-    function numberB(inputn)
-
-        return sum(inputn)
-    end
-
-    function energyI(inputn, inputs, weight, biasB, biasS)
+    function energyI(inputsB, inputsS, weight, biasB, biasS)
 
         num = 0.0
-        for ix in 1:Const.dimS
-            for iy in 1:Const.dimB
-                num += exp(-inputs[ix] * (weight[ix,iy] + biasB[iy] + biasS[ix]))
+        for ix in 1:Const.dim
+            for iy in 1:Const.dim
+                num += exp(-inputsS[ix] * (weight[ix,iy] + biasB[iy] + biasS[ix]))
             end
         end
 

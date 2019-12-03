@@ -5,9 +5,9 @@ using .Const, .Func, LinearAlgebra, Serialization,
 Combinatorics, InteractiveUtils, .MLcore
 
 B = [0 0 0 0
-     0 0 2 0
-     0 2 0 0
-     0 0 0 0] 
+     0 1 -1 0
+     0 -1 1 0
+     0 0 0 0] ./ 2.0
 
 function control(nx, ny)
 
@@ -22,4 +22,3 @@ end
 v = [1 2 3 4 5 6 7]
 
 println(eigvals(B))
-println(typeof(4/2))
