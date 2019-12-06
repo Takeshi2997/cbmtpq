@@ -13,15 +13,13 @@ module Init
         filename = dirname * "/param_at_" * lpad(0, 3, "0") * ".dat"
 
         # Initialize weight, bias
-        weight  = zeros(Complex{Float64}, Const.dimB, Const.dimS)
+        weight  = ones(Complex{Float64}, Const.dimB, Const.dimS) * 0.01
         weight[1:Const.dimS, 1:Const.dimS] += 
         diagm(0 => ones(Complex{Float64}, Const.dimS)) .* (im *  π / 4.0)
         biasB   = zeros(Complex{Float32}, Const.dimB)
         biasS   = zeros(Complex{Float32}, Const.dimS)
    
-        # Define network
-        network = (weight, biasB, biasS) 
-
+        network = (weight, biasB, biasS)
         # Write
         open(io -> serialize(io, network), filename, "w")
     end

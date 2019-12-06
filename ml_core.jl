@@ -38,8 +38,7 @@ module MLcore
 
             eS = Func.energyS(s, activationB)
             eB = Func.energyB(n, activationS)
-            eI = Func.energyI(n, s, weight, biasB, biasS)
-            e  = eS + eB + eI
+            e  = eB + eS 
             energy    += e
             energyS   += eS
             energyB   += eB
@@ -50,16 +49,16 @@ module MLcore
             dbiasS_h  += s * e
             dbiasS    += s
         end
-        energy     = real(energy) / Const.iters_num
-        energyS    = real(energyS) / Const.iters_num
-        energyB    = real(energyB) / Const.iters_num
-        dweight_h /= Const.iters_num
-        dweight   /= Const.iters_num
-        dbiasB_h  /= Const.iters_num
-        dbiasB    /= Const.iters_num
-        dbiasS_h  /= Const.iters_num
-        dbiasS    /= Const.iters_num
-        error = (real(energy - ϵ))^2
+        energy    = real(energy) / Const.iters_num
+        energyS   = real(energyS) / Const.iters_num
+        energyB   = real(energyB) / Const.iters_num
+        dweight_h = real.(dweight_h) / Const.iters_num .+ 0.0im
+        dweight   = real.(dweight) / Const.iters_num .+ 0.0im
+        dbiasB_h  = real.(dbiasB_h) / Const.iters_num .+ 0.0im
+        dbiasB    = real.(dbiasB) / Const.iters_num .+ 0.0im
+        dbiasS_h  = real.(dbiasS_h) / Const.iters_num .+ 0.0im
+        dbiasS    = real.(dbiasS) / Const.iters_num .+ 0.0im
+        error = (energy - ϵ)^2
 
         diff_weight = 2.0 * (energy - ϵ) * (dweight_h - energy * dweight)
         diff_biasB  = 2.0 * (energy - ϵ) * (dbiasB_h - energy * dbiasB)

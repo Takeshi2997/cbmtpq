@@ -32,7 +32,7 @@ module Func
 
         out = 1.0
         if s[1] != s[2]
-            out *= -1.0 + exp(-2.0 * transpose(z) * s)
+            out *= -1.0 + 2.0 * exp(-2.0 * transpose(z) * s)
         end
 
         return -Const.J * out / 4.0
@@ -55,7 +55,7 @@ module Func
             out += exp(-2.0 * transpose(s) * z)
         end
 
-        return Const.t * out / 2.0
+        return -Const.t * out / 2.0
     end
 
     function energyB(inputs, z)
@@ -66,18 +66,5 @@ module Func
         end
         sum += hamiltonianB(inputs[end:-Const.dimB+1:1], z[end:-Const.dimB+1:1])
         return sum
-    end
-
-    function energyI(n, s, weight, biasB, biasS)
-
-        num = 0.0
-        for ix in 1:Const.dimS
-            for iy in 1:Const.dimB
-                num += s[ix] * exp(n[iy] * s[ix] * weight[iy,ix] + 
-                                           n[iy] * biasB[iy] + s[ix] * biasS[ix])
-            end
-        end
-
-        return Const.δ * num
     end
 end

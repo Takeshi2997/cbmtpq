@@ -4,10 +4,10 @@ include("./ml_core.jl")
 using .Const, .Func, LinearAlgebra, Serialization,
 Combinatorics, InteractiveUtils, .MLcore
 
-B = [0 0 0 0
-     0 1 -1 0
-     0 -1 1 0
-     0 0 0 0] ./ 2.0
+B = [1 0 0 0
+     0 1 1 0
+     0 1 1 0
+     0 0 0 1] ./ 2.0
 
 function control(nx, ny)
 

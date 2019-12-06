@@ -9,15 +9,14 @@ module Const
     # System Param
     const t = 1.0
     const J = 1.0
-    const δ = 0.00001
 
     # Repeat Number
     const burnintime = 200
     const iters_num = 100
-    const it_num = 1000
+    const it_num = 5000
     const iϵmax = 20
     const num = 20000
 
     # Learning Rate
-    const lr = 0.00001
+    const lr = 0.0001
 end

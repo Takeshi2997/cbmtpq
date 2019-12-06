@@ -18,7 +18,7 @@ function main()
     f = open("error.txt", "w")
     for iϵ in 1:1 #Const.iϵmax
     
-        ϵ = -(0.15 - 0.5 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dimB
+        ϵ = -(0.2 - 0.5 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dimB
 
         filename = dirname * "/param_at_" * lpad(iϵ, 3, "0") * ".dat"
         filenameinit = dirname * "/param_at_" * lpad(iϵ-1, 3, "0") * ".dat"
