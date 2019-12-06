@@ -13,10 +13,11 @@ module Init
         filename = dirname * "/param_at_" * lpad(0, 3, "0") * ".dat"
 
         # Initialize weight, bias
-        weight  = ones(Complex{Float64}, Const.dim, Const.dim) * 0.001
-        weight += diagm(0 => ones(Complex{Float64}, Const.dim)) .* (im *  π / 4.0)
-        biasB   = zeros(Complex{Float32}, Const.dim)
-        biasS   = zeros(Complex{Float32}, Const.dim)
+        weight  = zeros(Complex{Float64}, Const.dimB, Const.dimS)
+        weight[1:Const.dimS, 1:Const.dimS] += 
+        diagm(0 => ones(Complex{Float64}, Const.dimS)) .* (im *  π / 4.0)
+        biasB   = zeros(Complex{Float32}, Const.dimB)
+        biasS   = zeros(Complex{Float32}, Const.dimS)
    
         # Define network
         network = (weight, biasB, biasS) 

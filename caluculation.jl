@@ -62,7 +62,7 @@ function test()
         # Write energy
         write(f, string(β))
         write(f, "\t")
-        write(f, string(ϵ / Const.dimB))
+        write(f, string(ϵ))
         write(f, "\t")
         write(f, string(-3.0 * Const.J / 8.0 * sinh(Const.J * β / 2.0) / 
                         (exp(Const.J * β / 2.0) + cosh(Const.J * β / 2.0))))
@@ -83,7 +83,7 @@ function test2()
         # Write energy
         write(f, string(β))
         write(f, "\t")
-        write(f, string(ϵ / Const.dimB))
+        write(f, string(ϵ))
         write(f, "\n")
     end
     close(f)
@@ -104,7 +104,7 @@ function calculate()
         # Write energy
         write(f, string(β))
         write(f, "\t")
-        write(f, string(real(energyS) / Const.systemsize))
+        write(f, string(real(energyS) / Const.dimS))
         write(f, "\t")
         write(f, string(real(energyB) / Const.dimB))
         write(f, "\t")
@@ -117,3 +117,4 @@ end
 
 #calculate()
 test2()
+test()

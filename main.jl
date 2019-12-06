@@ -18,19 +18,19 @@ function main()
     f = open("error.txt", "w")
     for iϵ in 1:1 #Const.iϵmax
     
-        ϵ = (0.5 - 0.5 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dim
+        ϵ = -(0.15 - 0.5 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dimB
 
         filename = dirname * "/param_at_" * lpad(iϵ, 3, "0") * ".dat"
         filenameinit = dirname * "/param_at_" * lpad(iϵ-1, 3, "0") * ".dat"
 #        filenameinit = dirname * "/param_at_000.dat"
 
         # Initialize weight, bias
-        wmoment    = zeros(Complex{Float64}, Const.dim, Const.dim)
-        wvelocity  = zeros(Complex{Float64}, Const.dim, Const.dim)
-        bmomentB   = zeros(Complex{Float64}, Const.dim)
-        bvelocityB = zeros(Complex{Float64}, Const.dim)
-        bmomentS   = zeros(Complex{Float64}, Const.dim)
-        bvelocityS = zeros(Complex{Float64}, Const.dim)
+        wmoment    = zeros(Complex{Float64}, Const.dimB, Const.dimS)
+        wvelocity  = zeros(Complex{Float64}, Const.dimB, Const.dimS)
+        bmomentB   = zeros(Complex{Float64}, Const.dimB)
+        bvelocityB = zeros(Complex{Float64}, Const.dimB)
+        bmomentS   = zeros(Complex{Float64}, Const.dimS)
+        bvelocityS = zeros(Complex{Float64}, Const.dimS)
         error   = 0.0
         energyS = 0.0
         energyB = 0.0
@@ -70,9 +70,9 @@ function main()
             write(f, "\t")
             write(f, string(real(error)))
             write(f, "\t")
-            write(f, string(real(energyS / Const.systemsize)))
+            write(f, string(real(energyS / Const.dimS)))
             write(f, "\t")
-            write(f, string(real(energyB / Const.dim)))
+            write(f, string(real(energyB / Const.dimB)))
             write(f, "\n")
         end
    

@@ -2,12 +2,12 @@ module Func
     include("./setup.jl")
     using .Const, LinearAlgebra
 
-    function update(z)
+    function updateS(z)
 
-        s = -ones(Float64, Const.dim)
+        s = -ones(Float64, Const.dimS)
         prob = 1.0 ./ (1.0 .+ exp.(-2.0 * z))
-        pup = rand(Float64, Const.dim)
-        for ix in 1:Const.dim
+        pup = rand(Float64, Const.dimS)
+        for ix in 1:Const.dimS
             if pup[ix] < prob[ix]
                 s[ix] = 1.0
             end
@@ -15,53 +15,66 @@ module Func
         return s
     end
 
-    function hS(s, z)
+    function updateB(z)
 
-        out = 0.0
+        s = -ones(Float64, Const.dimB)
+        prob = 1.0 ./ (1.0 .+ exp.(-2.0 * z))
+        pup = rand(Float64, Const.dimB)
+        for ix in 1:Const.dimB
+            if pup[ix] < prob[ix]
+                s[ix] = 1.0
+            end
+        end
+        return s
+    end
+
+   function hamiltonianS(s, z)
+
+        out = 1.0
         if s[1] != s[2]
-            out += (-1.0 + exp(-2.0 * transpose(z) * s)) / 2.0
+            out *= -1.0 + exp(-2.0 * transpose(z) * s)
         end
 
-        return out
+        return -Const.J * out / 4.0
     end
 
     function energyS(inputs, z)
 
         sum = 0.0 + 0.0im
-        for ix in 1:2:Const.dim-1
-            sum += hS(inputs[ix:ix+1], z[ix:ix+1])
+        for ix in 1:2:Const.dimS-1
+            sum += hamiltonianS(inputs[ix:ix+1], z[ix:ix+1])
         end
 
-        return -Const.J * sum / Const.copysize
+        return sum
     end
 
-    function hB(s, z)
+    function hamiltonianB(s, z)
 
-        out = 1.0 / 2.0
+        out = 0.0
         if s[1] != s[2]
-            out *= 1.0 + exp(-2.0 * transpose(s) * z)
+            out += exp(-2.0 * transpose(s) * z)
         end
 
-        return out
+        return Const.t * out / 2.0
     end
 
     function energyB(inputs, z)
 
         sum = 0.0 + 0.0im
-        for ix in 1:Const.dim-1
-            sum += hB(inputs[ix:ix+1], z[ix:ix+1])
+        for ix in 1:Const.dimB-1
+            sum += hamiltonianB(inputs[ix:ix+1], z[ix:ix+1])
         end
-        sum += hB(inputs[end:-Const.dim+1:1], z[end:-Const.dim+1:1])
-
-        return 2.0 * Const.t * sum
+        sum += hamiltonianB(inputs[end:-Const.dimB+1:1], z[end:-Const.dimB+1:1])
+        return sum
     end
 
-    function energyI(inputsB, inputsS, weight, biasB, biasS)
+    function energyI(n, s, weight, biasB, biasS)
 
         num = 0.0
-        for ix in 1:Const.dim
-            for iy in 1:Const.dim
-                num += exp(-inputsS[ix] * (weight[ix,iy] + biasB[iy] + biasS[ix]))
+        for ix in 1:Const.dimS
+            for iy in 1:Const.dimB
+                num += s[ix] * exp(n[iy] * s[ix] * weight[iy,ix] + 
+                                           n[iy] * biasB[iy] + s[ix] * biasS[ix])
             end
         end
 

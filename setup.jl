@@ -3,16 +3,13 @@ module Const
     using Combinatorics
 
     # System Size
-    const copysize = 20
-    const systemsize = 2
-    const dim = 40
-    sarray = hcat(ones(Float64, 4), -ones(Float64, 4))
-    const sset = collect(multiset_permutations(sarray, 2))
+    const dimS = 16
+    const dimB = 80
 
     # System Param
     const t = 1.0
     const J = 1.0
-    const δ = 0.01
+    const δ = 0.00001
 
     # Repeat Number
     const burnintime = 200
@@ -22,5 +19,5 @@ module Const
     const num = 20000
 
     # Learning Rate
-    const lr = 0.0001
+    const lr = 0.00001
 end
