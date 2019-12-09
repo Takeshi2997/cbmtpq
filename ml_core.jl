@@ -31,13 +31,15 @@ module MLcore
             activationB = transpose(weight) * n .+ biasS
             realactivationB = 2.0 * real.(activationB)
             s = Func.updateS(realactivationB)
+            phaseshiftB = im * π / 4.0 * s
 
             activationS = weight * s .+ biasB
             realactivationS = 2.0 * real.(activationS)
             n = Func.updateB(realactivationS)
+            phaseshiftS = im * π / 4.0 * n
 
-            eS = Func.energyS(s, activationB)
-            eB = Func.energyB(n, activationS)
+            eS = Func.energyS_shift(s, activationB + phaseshiftB)
+            eB = Func.energyB_shift(n, activationS + phaseshiftS)
             e  = eB + eS 
             energy    += e
             energyS   += eS

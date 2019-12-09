@@ -28,7 +28,47 @@ module Func
         return s
     end
 
-   function hamiltonianS(s, z)
+    function hamiltonianS_shift(s, z)
+
+        out = 0.0
+        if s[1] != s[2]
+            out += -1.0 + exp(-2.0 * transpose(z) * s)
+        end
+
+        return -Const.J * out / 2.0
+    end
+
+    function energyS_shift(inputs, z)
+
+        sum = 0.0 + 0.0im
+        for ix in 1:2:Const.dimS-1
+            sum += hamiltonianS_shift(inputs[ix:ix+1], z[ix:ix+1])
+        end
+
+        return sum
+    end
+
+    function hamiltonianB_shift(s, z)
+
+        out = 1.0
+        if s[1] != s[2]
+            out *= 1.0 + exp(-2.0 * transpose(s) * z)
+        end
+
+        return Const.t * out / 2.0
+    end
+
+    function energyB_shift(inputs, z)
+
+        sum = 0.0 + 0.0im
+        for ix in 1:Const.dimB-1
+            sum += hamiltonianB_shift(inputs[ix:ix+1], z[ix:ix+1])
+        end
+        sum += hamiltonianB_shift(inputs[end:-Const.dimB+1:1], z[end:-Const.dimB+1:1])
+        return sum
+    end
+
+    function hamiltonianS(s, z)
 
         out = 1.0
         if s[1] != s[2]
@@ -55,7 +95,7 @@ module Func
             out += exp(-2.0 * transpose(s) * z)
         end
 
-        return -Const.t * out / 2.0
+        return Const.t * out / 2.0
     end
 
     function energyB(inputs, z)

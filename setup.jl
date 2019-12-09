@@ -3,7 +3,7 @@ module Const
     using Combinatorics
 
     # System Size
-    const dimS = 16
+    const dimS = 20
     const dimB = 80
 
     # System Param
@@ -13,10 +13,10 @@ module Const
     # Repeat Number
     const burnintime = 200
     const iters_num = 100
-    const it_num = 5000
+    const it_num = 1000
     const iϵmax = 20
     const num = 20000
 
     # Learning Rate
-    const lr = 0.0001
+    const lr = 0.00005
 end
