@@ -3,7 +3,7 @@ include("./ml_core.jl")
 using .Const, .MLcore, LinearAlgebra, Serialization
 
 state = collect(1:Int64(Const.dimB/2)-1)
-const ϵ = 4.0 * Const.t * cos.(2.0 * π / Const.dimB * state)
+const ϵ = 2.0 * Const.t * cos.(2.0 * π / Const.dimB * state)
 
 function f(t)
     
