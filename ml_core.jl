@@ -31,15 +31,13 @@ module MLcore
             activationB = transpose(weight) * n .+ biasS
             realactivationB = 2.0 * real.(activationB)
             s = Func.updateS(realactivationB)
-            phaseshiftB = im * π / 4.0 * s
 
             activationS = weight * s .+ biasB
             realactivationS = 2.0 * real.(activationS)
             n = Func.updateB(realactivationS)
-            phaseshiftS = im * π / 4.0 * n
 
-            eS = Func.energyS_shift(s, activationB + phaseshiftB)
-            eB = Func.energyB_shift(n, activationS + phaseshiftS)
+            eS = Func.energyS_shift(s, activationB)
+            eB = Func.energyB_shift(n, activationS)
             e  = eB + eS 
             energy    += e
             energyS   += eS
@@ -54,12 +52,12 @@ module MLcore
         energy    = real(energy) / Const.iters_num
         energyS   = real(energyS) / Const.iters_num
         energyB   = real(energyB) / Const.iters_num
-        dweight_h = real.(dweight_h) / Const.iters_num .+ 0.0im
-        dweight   = real.(dweight) / Const.iters_num .+ 0.0im
-        dbiasB_h  = real.(dbiasB_h) / Const.iters_num .+ 0.0im
-        dbiasB    = real.(dbiasB) / Const.iters_num .+ 0.0im
-        dbiasS_h  = real.(dbiasS_h) / Const.iters_num .+ 0.0im
-        dbiasS    = real.(dbiasS) / Const.iters_num .+ 0.0im
+        dweight_h /= Const.iters_num
+        dweight   /= Const.iters_num
+        dbiasB_h  /= Const.iters_num
+        dbiasB    /= Const.iters_num
+        dbiasS_h  /= Const.iters_num
+        dbiasS    /= Const.iters_num
         error = (energy - ϵ)^2
 
         diff_weight = 2.0 * (energy - ϵ) * (dweight_h - energy * dweight)

@@ -22,15 +22,11 @@ function main()
 
         filename = dirname * "/param_at_" * lpad(iϵ, 3, "0") * ".dat"
         filenameinit = dirname * "/param_at_" * lpad(iϵ-1, 3, "0") * ".dat"
-#        filenameinit = dirname * "/param_at_000.dat"
 
         # Initialize weight, bias
         wmoment    = zeros(Complex{Float64}, Const.dimB, Const.dimS)
-        wvelocity  = zeros(Complex{Float64}, Const.dimB, Const.dimS)
         bmomentB   = zeros(Complex{Float64}, Const.dimB)
-        bvelocityB = zeros(Complex{Float64}, Const.dimB)
         bmomentS   = zeros(Complex{Float64}, Const.dimS)
-        bvelocityS = zeros(Complex{Float64}, Const.dimS)
         error   = 0.0
         energyS = 0.0
         energyB = 0.0
@@ -48,17 +44,6 @@ function main()
             MLcore.diff_error(network.weight, network.biasB, network.biasS, ϵ)
 
             # Optimize
-#            lr_t = lr * sqrt(1.0 - 0.999^it) / (1.0 - 0.9^it)
-#            wmoment        += (1.0 - 0.9) * (dweight - wmoment)
-#            wvelocity      += (1.0 - 0.999) * (dweight.^2 - wvelocity)
-#            network.weight -= lr_t * wmoment ./ (sqrt.(wvelocity) .+ 1.0 * 10^(-7))
-#            bmomentB       += (1.0 - 0.9) * (dbiasB - bmomentB)
-#            bvelocityB     += (1.0 - 0.999) * (dbiasB.^2 - bvelocityB)
-#            network.biasB  -= lr_t * bmomentB ./ (sqrt.(bvelocityB) .+ 1.0 * 10^(-7))
-#            bmomentS       += (1.0 - 0.9) * (dbiasS - bmomentS)
-#            bvelocityS     += (1.0 - 0.999) * (dbiasS.^2 - bvelocityS)
-#            network.biasS  -= lr_t * bmomentS ./ (sqrt.(bvelocityS) .+ 1.0 * 10^(-7))
-
             wmoment         = 0.9 * wmoment - lr * dweight
             network.weight += wmoment
             bmomentS        = 0.9 * bmomentS - lr * dbiasS
