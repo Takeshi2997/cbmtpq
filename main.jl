@@ -18,15 +18,15 @@ function main()
     f = open("error.txt", "w")
     for iϵ in 1:1 #Const.iϵmax
     
-        ϵ = (0.2 - 0.5 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dimB
+        ϵ = (0.22 - 0.5 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dimB
 
         filename = dirname * "/param_at_" * lpad(iϵ, 3, "0") * ".dat"
         filenameinit = dirname * "/param_at_" * lpad(iϵ-1, 3, "0") * ".dat"
 
         # Initialize weight, bias
-        wmoment    = zeros(Complex{Float64}, Const.dimB, Const.dimS)
-        bmomentB   = zeros(Complex{Float64}, Const.dimB)
-        bmomentS   = zeros(Complex{Float64}, Const.dimS)
+        wmoment = zeros(Complex{Float32}, Const.dimB, Const.dimS)
+        bmomentB = zeros(Complex{Float32}, Const.dimB)
+        bmomentS = zeros(Complex{Float32}, Const.dimS)
         error   = 0.0
         energyS = 0.0
         energyB = 0.0

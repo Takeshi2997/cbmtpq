@@ -3,7 +3,7 @@ module Const
     using Combinatorics
 
     # System Size
-    const dimS = 20
+    const dimS = 8
     const dimB = 80
 
     # System Param
@@ -18,5 +18,5 @@ module Const
     const num = 20000
 
     # Learning Rate
-    const lr = 0.00001
+    const lr = 0.001
 end

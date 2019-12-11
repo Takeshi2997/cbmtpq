@@ -98,13 +98,13 @@ module Func
         return Const.t * out / 2.0
     end
 
-    function energyB(inputs, z)
+    function energyB(s, z)
 
         sum = 0.0 + 0.0im
-        for ix in 1:Const.dimB-1
-            sum += hamiltonianB(inputs[ix:ix+1], z[ix:ix+1])
+        for iy in 1:Const.dimB-1
+            sum += hamiltonianB(s[iy:iy+1], z[iy:iy+1])
         end
-        sum += hamiltonianB(inputs[end:-Const.dimB+1:1], z[end:-Const.dimB+1:1])
+        sum += hamiltonianB(s[end:-Const.dimB+1:1], z[end:-Const.dimB+1:1])
         return sum
     end
 end

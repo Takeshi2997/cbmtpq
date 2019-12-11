@@ -34,7 +34,7 @@ module MLcore
 
             activationS = weight * s .+ biasB
             realactivationS = 2.0 * real.(activationS)
-            n = Func.updateB(realactivationS)
+            nnext = Func.updateB(realactivationS)
 
             eS = Func.energyS_shift(s, activationB)
             eB = Func.energyB_shift(n, activationS)
@@ -42,12 +42,14 @@ module MLcore
             energy    += e
             energyS   += eS
             energyB   += eB
-            dweight_h += transpose(s) .* n .* e
+            dweight_h += transpose(s) .* n * e
             dweight   += transpose(s) .* n
             dbiasB_h  += n * e
             dbiasB    += n
             dbiasS_h  += s * e
             dbiasS    += s
+
+            n = nnext
         end
         energy    = real(energy) / Const.iters_num
         energyS   = real(energyS) / Const.iters_num
@@ -61,8 +63,8 @@ module MLcore
         error = (energy - ϵ)^2
 
         diff_weight = 2.0 * (energy - ϵ) * (dweight_h - energy * dweight)
-        diff_biasB  = 2.0 * (energy - ϵ) * (dbiasB_h - energy * dbiasB)
-        diff_biasS  = 2.0 * (energy - ϵ) * (dbiasS_h - energy * dbiasS)
+        diff_biasB = 2.0 * (energy - ϵ) * (dbiasB_h - energy * dbiasB)
+        diff_biasS = 2.0 * (energy - ϵ) * (dbiasS_h - energy * dbiasS)
 
         return error, energyS, energyB, 
         diff_weight, diff_biasB, diff_biasS

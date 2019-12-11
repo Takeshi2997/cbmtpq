@@ -13,8 +13,8 @@ module Init
         filename = dirname * "/param_at_" * lpad(0, 3, "0") * ".dat"
 
         # Initialize weight, bias
-        weight  = zeros(Complex{Float64}, Const.dimB, Const.dimS)
-        for n in 0:3
+        weight  = ones(Complex{Float64}, Const.dimB, Const.dimS) * 0.001
+        for n in 0:Int64(Const.dimB/Const.dimS)-1
             weight[Const.dimS*n+1:(n+1)*Const.dimS,:] += 
             diagm(0 => ones(Complex{Float64}, Const.dimS)) * (im * π / 4.0)
         end
