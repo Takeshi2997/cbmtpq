@@ -5,11 +5,13 @@ module MLcore
 
     function diff_error(weight, biasB, biasS, ϵ)
 
-        n = -ones(Float64, Const.dimB)
+        n = zeros(Float64, Const.dimB)
         s = -ones(Float64, Const.dimB)
         energy  = 0.0
         energyS = 0.0
         energyB = 0.0
+        numberB = 0.0
+        numbrB2 = 0.0
         dweight_h = zeros(Complex{Float64}, Const.dimB, Const.dimS)
         dweight   = zeros(Complex{Float64}, Const.dimB, Const.dimS)
         dbiasB_h  = zeros(Complex{Float64}, Const.dimB)
@@ -38,10 +40,12 @@ module MLcore
 
             eS = Func.energyS_shift(s, activationB)
             eB = Func.energyB_shift(n, activationS)
-            e  = eB + eS 
+            e  = eS + eB
             energy    += e
             energyS   += eS
             energyB   += eB
+            numberB   += sum(n)
+            numbrB2   += sum(n)^2
             dweight_h += transpose(s) .* n * e
             dweight   += transpose(s) .* n
             dbiasB_h  += n * e
@@ -54,23 +58,68 @@ module MLcore
         energy    = real(energy) / Const.iters_num
         energyS   = real(energyS) / Const.iters_num
         energyB   = real(energyB) / Const.iters_num
+        numberB   /= Const.iters_num
+        numbrB2   /= Const.iters_num
         dweight_h /= Const.iters_num
         dweight   /= Const.iters_num
         dbiasB_h  /= Const.iters_num
         dbiasB    /= Const.iters_num
         dbiasS_h  /= Const.iters_num
         dbiasS    /= Const.iters_num
-        error = (energy - ϵ)^2
+        error   = (energy - ϵ)^2
+        numverB = numbrB2 - numberB^2
 
         diff_weight = 2.0 * (energy - ϵ) * (dweight_h - energy * dweight)
-        diff_biasB = 2.0 * (energy - ϵ) * (dbiasB_h - energy * dbiasB)
-        diff_biasS = 2.0 * (energy - ϵ) * (dbiasS_h - energy * dbiasS)
+        diff_biasB  = 2.0 * (energy - ϵ) * (dbiasB_h - energy * dbiasB)
+        diff_biasS  = 2.0 * (energy - ϵ) * (dbiasS_h - energy * dbiasS)
 
-        return error, energyS, energyB, 
+        return error, energyS, energyB, numberB, numverB,
         diff_weight, diff_biasB, diff_biasS
     end
 
-    function forward()
+    function forward(weight, biasB, biasS)
 
-    end
+        n = zeros(Float64, Const.dimB)
+        s = -ones(Float64, Const.dimB)
+        energy  = 0.0
+        energyS = 0.0
+        energyB = 0.0
+        numberB = 0.0
+
+        for i in 1:Const.burnintime
+            activationB = transpose(weight) * n .+ biasS
+            realactivationB = 2.0 * real.(activationB)
+            s = Func.updateS(realactivationB)
+
+            activationS = weight * s .+ biasB
+            realactivationS = 2.0 * real.(activationS)
+            n = Func.updateB(realactivationS)
+        end
+
+        for i in 1:Const.num
+            activationB = transpose(weight) * n .+ biasS
+            realactivationB = 2.0 * real.(activationB)
+            s = Func.updateS(realactivationB)
+
+            activationS = weight * s .+ biasB
+            realactivationS = 2.0 * real.(activationS)
+            nnext = Func.updateB(realactivationS)
+
+            eS = Func.energyS_shift(s, activationB)
+            eB = Func.energyB_shift(n, activationS)
+            e  = eS + eB
+            energy    += e
+            energyS   += eS
+            energyB   += eB
+            numberB   += sum(n)
+
+            n = nnext
+        end
+        energy    = real(energy) / Const.num
+        energyS   = real(energyS) / Const.num
+        energyB   = real(energyB) / Const.num
+        numberB   /= Const.num
+
+        return energyS, energyB, numberB
+   end
 end

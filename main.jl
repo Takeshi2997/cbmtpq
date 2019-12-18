@@ -1,8 +1,7 @@
 include("./setup.jl")
 include("./ml_core.jl")
-include("./initialize.jl")
 include("./functions.jl")
-using .Const, .MLcore, .Init, .Func, LinearAlgebra, Serialization, InteractiveUtils
+using .Const, .MLcore, .Func, LinearAlgebra, Serialization, InteractiveUtils
 
 mutable struct Network
 
@@ -18,7 +17,7 @@ function main()
     f = open("error.txt", "w")
     for iϵ in 1:1 #Const.iϵmax
     
-        ϵ = (0.22 - 0.5 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dimB
+        ϵ = (0.38 - 0.4 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dimB
 
         filename = dirname * "/param_at_" * lpad(iϵ, 3, "0") * ".dat"
         filenameinit = dirname * "/param_at_" * lpad(iϵ-1, 3, "0") * ".dat"
@@ -30,7 +29,9 @@ function main()
         error   = 0.0
         energyS = 0.0
         energyB = 0.0
-        numberB = 0.0
+        numberB = 0.5 * Const.dimB
+        μ  = 0.0
+        μm = 0.0
         lr = Const.lr
 
         # Define network
@@ -39,17 +40,23 @@ function main()
 
         # Learning
         for it in 1:Const.it_num
-    
-            error, energyS, energyB, dweight, dbiasB, dbiasS = 
-            MLcore.diff_error(network.weight, network.biasB, network.biasS, ϵ)
+
+            numberBprev = numberB
+
+            error, energyS, energyB, numberB, numverB, 
+            dweight, dbiasB, dbiasS = 
+            MLcore.diff_error(network.weight, network.biasB .- μ/2.0, network.biasS, ϵ)
 
             # Optimize
             wmoment         = 0.9 * wmoment - lr * dweight
             network.weight += wmoment
-            bmomentS        = 0.9 * bmomentS - lr * dbiasS
-            network.biasS  += bmomentS
             bmomentB        = 0.9 * bmomentB - lr * dbiasB
             network.biasB  += bmomentB
+            bmomentS        = 0.9 * bmomentS - lr * dbiasS
+            network.biasS  += bmomentS
+            dμ = (numberB - numberBprev) / numverB
+            μm = 0.9 * μm + dμ
+            μ += μm
 
             write(f, string(it))
             write(f, "\t")
@@ -58,6 +65,10 @@ function main()
             write(f, string(energyS / Const.dimS))
             write(f, "\t")
             write(f, string(energyB / Const.dimB))
+            write(f, "\t")
+            write(f, string(numberB / Const.dimB))
+            write(f, "\t")
+            write(f, string(μ))
             write(f, "\n")
         end
    
@@ -66,11 +77,11 @@ function main()
 #        write(f, "\t")
 #        write(f, string(real(error)))
 #        write(f, "\t")
-#        write(f, string(real(energyB / Const.dim)))
+#        write(f, string(real(energyB / Const.dimB)))
 #        write(f, "\t")
-#        write(f, string(real(energyS / Const.systemsize)))
+#        write(f, string(real(energyS / Const.dimS)))
 #        write(f, "\t")
-#        write(f, string(real(numberB / Const.dim)))
+#        write(f, string(real(numberB / Const.dimB)))
 #        write(f, "\n")
 
         params = (network.weight, network.biasB, network.biasS)
@@ -79,6 +90,5 @@ function main()
     close(f)
 end
 
-Init.network()
 @time main()
 
