@@ -42,7 +42,7 @@ module Func
 
         sum = 0.0 + 0.0im
         for ix in 1:2:Const.dimS-1
-            sum += hamiltonianS_shift(inputs[ix:ix+1], z[ix:ix+1])
+            sum += hamiltonianB_shift(inputs[ix:ix+1], z[ix:ix+1])
         end
 
         return sum
