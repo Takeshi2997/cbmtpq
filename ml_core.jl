@@ -55,9 +55,9 @@ module MLcore
 
             n = nnext
         end
-        energy    = real(energy) / Const.iters_num
-        energyS   = real(energyS) / Const.iters_num
-        energyB   = real(energyB) / Const.iters_num
+        energy     = real(energy) / Const.iters_num
+        energyS    = real(energyS) / Const.iters_num
+        energyB    = real(energyB) / Const.iters_num
         numberB   /= Const.iters_num
         numbrB2   /= Const.iters_num
         dweight_h /= Const.iters_num

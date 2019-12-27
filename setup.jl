@@ -1,7 +1,5 @@
 module Const
 
-    using Combinatorics
-
     # System Size
     const dimS = 16
     const dimB = 80
@@ -9,6 +7,7 @@ module Const
     # System Param
     const t = 1.0
     const J = 1.0
+    const λ = 0.1
 
     # Repeat Number
     const burnintime = 200

@@ -32,7 +32,7 @@ module Func
 
         out = 1.0
         if s[1] != s[2]
-            out += -1.0 + 2.0 * exp(-2.0 * transpose(z) * s)
+            out = -1.0 + 2.0 * exp(-2.0 * transpose(z) * s)
         end
 
         return -Const.J * out / 4.0 + 1.0 / 4.0
@@ -61,7 +61,7 @@ module Func
 
     function energyB_shift(inputn, z)
 
-        sum = 0.0 + 0.0im
+        sum = 0.0im
         for ix in 1:Const.dimB-1
             sum += hamiltonianB_shift(inputn[ix:ix+1], z[ix:ix+1])
         end
