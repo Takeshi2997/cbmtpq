@@ -2,18 +2,25 @@ include("./setup.jl")
 include("./ml_core.jl")
 using .Const, .MLcore, LinearAlgebra, Serialization
 
-state = collect(1:Int64(Const.dimB/2)-1)
-const ϵ = 2.0 * Const.t * cos.(2.0 * π / Const.dimB * state)
+const state = collect(-Const.dimB+1:2:Const.dimB-1)
+const ϵ = Const.t / 2.0 * abs.(cos.(π / Const.dimB * state))
+
+function energy(β)
+
+    return -sum(ϵ .* tanh.(β * ϵ)) / Const.dimB 
+end
 
 function f(t)
     
-    return - t * sum(log.(2.0 .+ 2.0 * cosh.(ϵ / 2.0 / t)))
+    ϵ = Const.t * abs.(cos.(π / Const.dimB * state))
+    return - t * sum(log.(cosh.(ϵ / t)))
 end
 
 function df(t)
 
-    return sum(-log.(2.0 .+ 2.0 * cosh.(ϵ / 2.0 / t)) .+
-    (ϵ / 2.0 / t .* sinh.(ϵ / 2.0 / t)) ./ (1.0 .+ cosh.(ϵ / 2.0 / t)))
+    ϵ = Const.t * abs.(cos.(π / Const.dimB * state))
+    x = sign.(cos.(π / Const.dimB * state) .- μ / Const.t)
+    return sum(-log.(cosh.(ϵ / t)) .+ (x .* ϵ / t .* tanh.(ϵ / t)))
 end
 
 function s(u, t)
@@ -24,11 +31,6 @@ end
 function ds(u, t)
 
     return -(u - f(t)) / t^2 - df(t) / t
-end
-
-function energy(β)
-
-    return -sum((ϵ .* sinh.(ϵ * β))./ (1.0 .+ cosh.(ϵ * β)))
 end
 
 function translate(u)
@@ -49,28 +51,33 @@ function translate(u)
     return 1 / t
 end
 
-function test()
+function particle_number(β, μ)
 
-    dirname = "./data"
-    f = open("energy-temperature.txt", "w")
-    iϵ = 0
-    β = 1.0
-    while 1/β >0
-        ϵ = -iϵ * 0.01
-        β = translate(ϵ)
-    
-        # Write energy
-        write(f, string(β))
-        write(f, "\t")
-        write(f, string(ϵ / Const.dimB))
-        write(f, "\t")
-        write(f, string(-3.0 * Const.J / 8.0 * sinh(Const.J * β / 2.0) / 
-                        (exp(Const.J * β / 2.0) + cosh(Const.J * β / 2.0))))
-        write(f, "\n")
-        iϵ += 1
+    x = cos.(π / Const.dimB * state) .+ μ / Const.t
+    ϵ = Const.t * abs.(x)
+    return -sum(tanh.(β * ϵ) .* sign.(x)) + Const.dimB / 2.0
+end
+
+function dparticle_number(β, μ)
+
+    ϵ = Const.t * abs.(cos.(π / Const.dimB * state) .+ μ / Const.t)
+    return -sum(1.0 ./ (cosh.(β * ϵ)).^2)
+end
+
+
+function chemical_potential(β, n)
+   
+    δ = 1.0
+    μ = 0.05
+    while δ > 0.00000001
+        numberB = particle_number(β, μ)
+        dnumber = dparticle_number(β, μ)
+        δ = abs(numberB / Const.dimB - n)
+        μ -= 0.01 * (numberB - n * Const.dimB) / dnumber
     end
-    close(f)
-end   
+    
+    return μ
+end
 
 function test2()
 
@@ -80,10 +87,14 @@ function test2()
         β = iβ * 0.01
    
         ϵ = energy(β)
+
         # Write energy
         write(f, string(β))
         write(f, "\t")
-        write(f, string(ϵ / Const.dimB))
+        write(f, string(ϵ + 0.5))
+        write(f, "\t")
+        write(f, string(-3.0 * Const.J / 8.0 * sinh(Const.J * β / 2.0) / 
+                        (exp(Const.J * β / 2.0) + cosh(Const.J * β / 2.0))))
         write(f, "\n")
     end
     close(f)
@@ -93,28 +104,33 @@ function calculate()
 
     dirname = "./data"
     f = open("energy_data.txt", "w")
-    for iϵ in 1:1 # Const.iϵmax
+    datamatrix = zeros(Float64, Const.iϵmax, 3)
+    for iϵ in 1:Const.iϵmax
 
         filename = dirname * "/param_at_" * lpad(iϵ, 3, "0") * ".dat"
         params = open(deserialize, filename)
 
-        energy, energyS, energyB = MLcore.forward(params...)
-        β = translate(real(energyB))
+        energyS, energyB, numberB = MLcore.forward(params...)
 
+        β = translate(energyB - Const.dimB * Const.t)
         # Write energy
         write(f, string(β))
         write(f, "\t")
-        write(f, string(real(energyS) / Const.dimS))
+        write(f, string(energyB / Const.dimB))
         write(f, "\t")
-        write(f, string(real(energyB) / Const.dimB))
+        write(f, string(energyS / Const.dimS))
         write(f, "\t")
         write(f, string(-3.0 * Const.J / 8.0 * sinh(Const.J * β / 2.0) / 
-                        (exp(Const.J * β / 2.0) + cosh(Const.J * β / 2.0))))
+                        (exp(Const.J * β / 2.0) + cosh(Const.J * β / 2.0)) + 
+                       0.125))
         write(f, "\n")
+
+
+        datamatrix[iϵ, :] = [β energyB/Const.dimB energyS/Const.dimS]
     end
+    open(io -> serialize(io, datamatrix), "energy_data.dat", "w")
     close(f)
 end
 
 #calculate()
-#test2()
-test()
+test2()
