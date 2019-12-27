@@ -42,10 +42,10 @@ module MLcore
             energy    += e
             energyS   += eS
             energyB   += eB
-            dweight_h += transpose(s) .* n * e
-            dweight   += transpose(s) .* n
-            dbiasB_h  += n * e
-            dbiasB    += n
+            dweight_h += transpose(s) .* tanh.(activationS) * e
+            dweight   += transpose(s) .* tanh.(activationS)
+            dbiasB_h  += tanh.(activationS) * e
+            dbiasB    += tanh.(activationS)
             dbiasS_h  += s * e
             dbiasS    += s
 

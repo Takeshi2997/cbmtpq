@@ -13,10 +13,10 @@ module Const
     # Repeat Number
     const burnintime = 200
     const iters_num = 100
-    const it_num = 5000
+    const it_num = 1000
     const iϵmax = 20
     const num = 20000
 
     # Learning Rate
-    const lr = 0.000001
+    const lr = 0.0000002
 end
