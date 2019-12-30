@@ -7,7 +7,6 @@ const ϵ = Const.t * abs.(cos.(π / Const.dimB * state))
 
 function energy(β)
 
-    ϵ = Const.t * abs.(cos.(π / Const.dimB * state))
     return -sum(ϵ .* tanh.(β * ϵ)) / Const.dimB 
 end
 

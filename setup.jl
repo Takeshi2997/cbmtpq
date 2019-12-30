@@ -2,12 +2,11 @@ module Const
 
     # System Size
     const dimS = 16
-    const dimB = 80
+    const dimB = 64
 
     # System Param
     const t = 1.0
     const J = 1.0
-    const λ = 0.1
 
     # Repeat Number
     const burnintime = 200
@@ -17,5 +16,5 @@ module Const
     const num = 20000
 
     # Learning Rate
-    const lr = 0.0000005
+    const lr = 0.000001
 end

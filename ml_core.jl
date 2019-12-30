@@ -3,7 +3,18 @@ module MLcore
     include("./functions.jl")
     using .Const, .Func, LinearAlgebra
 
-    function diff_error(weight, biasB, biasS, ϵ)
+    mutable struct Network
+    
+        weight::Array{Complex{Float64}, 2}
+        biasB::Array{Complex{Float64}, 1}
+        biasS::Array{Complex{Float64}, 1}
+    end
+
+    function diff_error(network, ϵ, μ)
+
+        weight = network.weight
+        biasB  = network.biasB .- μ / 2.0
+        biasS  = network.biasS
 
         n = zeros(Float64, Const.dimB)
         s = -ones(Float64, Const.dimB)

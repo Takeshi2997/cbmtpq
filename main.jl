@@ -3,13 +3,6 @@ include("./ml_core.jl")
 include("./functions.jl")
 using .Const, .MLcore, .Func, LinearAlgebra, Serialization, InteractiveUtils
 
-mutable struct Network
-
-    weight::Array{Complex{Float64}, 2}
-    biasB::Array{Complex{Float64}, 1}
-    biasS::Array{Complex{Float64}, 1}
-end
-
 function main()
 
     dirname = "./data"
@@ -35,8 +28,8 @@ function main()
         lr = Const.lr
 
         # Define network
-        params = open(deserialize, filenameinit)
-        network = Network(params...)
+        params  = open(deserialize, filenameinit)
+        network = MLcore.Network(params...)
 
         # Learning
         for it in 1:Const.it_num
@@ -45,7 +38,7 @@ function main()
 
             error, energyS, energyB, numberB, numverB, 
             dweight, dbiasB, dbiasS = 
-            MLcore.diff_error(network.weight, network.biasB .- μ/2.0, network.biasS, ϵ)
+            MLcore.diff_error(network, ϵ, μ)
 
             # Optimize
             wmoment         = 0.9 * wmoment - lr * dweight
