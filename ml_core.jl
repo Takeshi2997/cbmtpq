@@ -8,12 +8,13 @@ module MLcore
         weight::Array{Complex{Float64}, 2}
         biasB::Array{Complex{Float64}, 1}
         biasS::Array{Complex{Float64}, 1}
+        μ::Float64
     end
 
-    function diff_error(network, ϵ, μ)
+    function diff_error(network, ϵ)
 
         weight = network.weight
-        biasB  = network.biasB .- μ / 2.0
+        biasB  = network.biasB .- network.μ / 2.0
         biasS  = network.biasS
 
         n = zeros(Float64, Const.dimB)
@@ -50,7 +51,7 @@ module MLcore
             nnext = Func.updateB(realactivationS)
 
             eS = Func.energyS_shift(s, activationB)
-            eB = Func.energyB_shift(n, activationS)
+            eB = Func.energyB_shift(n, activationS, network.μ)
             e  = eS + eB
             energy    += e
             energyS   += eS
@@ -88,7 +89,9 @@ module MLcore
         diff_weight, diff_biasB, diff_biasS
     end
 
-    function forward(weight, biasB, biasS)
+    function forward(weight, biasB, biasS, μ)
+
+        biasB .-= μ / 2.0
 
         n = zeros(Float64, Const.dimB)
         s = -ones(Float64, Const.dimB)
@@ -117,7 +120,7 @@ module MLcore
             nnext = Func.updateB(realactivationS)
 
             eS = Func.energyS_shift(s, activationB)
-            eB = Func.energyB_shift(n, activationS)
+            eB = Func.energyB_shift(n, activationS, μ)
             e  = eS + eB
             energy    += e
             energyS   += eS
@@ -126,10 +129,10 @@ module MLcore
 
             n = nnext
         end
-        energy    = real(energy) / Const.num
-        energyS   = real(energyS) / Const.num
-        energyB   = real(energyB) / Const.num
-        numberB   /= Const.num
+        energy   = real(energy) / Const.num
+        energyS  = real(energyS) / Const.num
+        energyB  = real(energyB) / Const.num
+        numberB /= Const.num
 
         return energyS, energyB, numberB
    end

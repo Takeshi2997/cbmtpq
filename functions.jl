@@ -48,7 +48,7 @@ module Func
         return sum
     end
 
-    function hamiltonianB_shift(n, z)
+    function hamiltonianB_shift(n, z, μ)
 
         out = 0.0im
         s = (1.0 / 2.0 .- n) * 2.0
@@ -56,18 +56,18 @@ module Func
             out += -exp(transpose(s) * z)
         end
 
-        return Const.t * out + 1.0
+        return Const.t * out - μ / 2.0 * (n[1] + n[2]) + 1.0
     end
 
-    function energyB_shift(inputn, z)
+    function energyB_shift(inputn, z, μ)
 
         sum = 0.0im
         for ix in 1:Const.dimB-1
-            sum += hamiltonianB_shift(inputn[ix:ix+1], z[ix:ix+1])
+            sum += hamiltonianB_shift(inputn[ix:ix+1], z[ix:ix+1], μ)
         end
         sum += 
         hamiltonianB_shift(inputn[end:-Const.dimB+1:1], 
-                           z[end:-Const.dimB+1:1])
+                           z[end:-Const.dimB+1:1], μ)
         return sum
     end
 end

@@ -1,8 +1,8 @@
 module Const
 
     # System Size
-    const dimS = 16
-    const dimB = 64
+    const dimS = 8
+    const dimB = 120
 
     # System Param
     const t = 1.0
@@ -10,11 +10,11 @@ module Const
 
     # Repeat Number
     const burnintime = 200
-    const iters_num = 100
-    const it_num = 1000
+    const iters_num = 500
+    const it_num = 3000
     const iϵmax = 20
     const num = 20000
 
     # Learning Rate
-    const lr = 0.000001
+    const lr = 0.0000001
 end

@@ -8,12 +8,12 @@ function main()
     dirname = "./data"
 
     f = open("error.txt", "w")
-    for iϵ in 1:1 #Const.iϵmax
+    for iϵ in 1:Const.iϵmax
     
-        ϵ = (0.0 - 0.4 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dimB
+        ϵ = (0.9 - 0.5 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dimB
 
         filename = dirname * "/param_at_" * lpad(iϵ, 3, "0") * ".dat"
-        filenameinit = dirname * "/param_at_" * lpad(iϵ-1, 3, "0") * ".dat"
+        filenameinit = dirname * "/param_at_000.dat"
 
         # Initialize weight, bias
         wmoment = zeros(Complex{Float32}, Const.dimB, Const.dimS)
@@ -23,7 +23,6 @@ function main()
         energyS = 0.0
         energyB = 0.0
         numberB = 0.5 * Const.dimB
-        μ  = 0.0
         μm = 0.0
         lr = Const.lr
 
@@ -38,7 +37,7 @@ function main()
 
             error, energyS, energyB, numberB, numverB, 
             dweight, dbiasB, dbiasS = 
-            MLcore.diff_error(network, ϵ, μ)
+            MLcore.diff_error(network, ϵ)
 
             # Optimize
             wmoment         = 0.9 * wmoment - lr * dweight
@@ -49,35 +48,37 @@ function main()
             network.biasS  += bmomentS
             dμ = (numberB - numberBprev) / numverB
             μm = 0.9 * μm + dμ
-            μ += μm
+            network.μ += μm
 
-            write(f, string(it))
-            write(f, "\t")
-            write(f, string(error))
-            write(f, "\t")
-            write(f, string(energyS / Const.dimS))
-            write(f, "\t")
-            write(f, string(energyB / Const.dimB))
-            write(f, "\t")
-            write(f, string(numberB / Const.dimB))
-            write(f, "\t")
-            write(f, string(μ))
-            write(f, "\n")
+#            write(f, string(it))
+#            write(f, "\t")
+#            write(f, string(error))
+#            write(f, "\t")
+#            write(f, string(energyS / Const.dimS))
+#            write(f, "\t")
+#            write(f, string(energyB / Const.dimB))
+#            write(f, "\t")
+#            write(f, string(numberB / Const.dimB))
+#            write(f, "\t")
+#            write(f, string(network.μ))
+#            write(f, "\n")
         end
    
         # Write error
-#        write(f, string(iϵ))
-#        write(f, "\t")
-#        write(f, string(real(error)))
-#        write(f, "\t")
-#        write(f, string(real(energyB / Const.dimB)))
-#        write(f, "\t")
-#        write(f, string(real(energyS / Const.dimS)))
-#        write(f, "\t")
-#        write(f, string(real(numberB / Const.dimB)))
-#        write(f, "\n")
+        write(f, string(iϵ))
+        write(f, "\t")
+        write(f, string(error))
+        write(f, "\t")
+        write(f, string(energyB / Const.dimB))
+        write(f, "\t")
+        write(f, string(energyS / Const.dimS))
+        write(f, "\t")
+        write(f, string(numberB / Const.dimB))
+        write(f, "\t")
+        write(f, string(network.μ))
+        write(f, "\n")
 
-        params = (network.weight, network.biasB, network.biasS)
+        params = (network.weight, network.biasB, network.biasS, network.μ)
         open(io -> serialize(io, params), filename, "w")
     end
     close(f)

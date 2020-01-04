@@ -3,10 +3,10 @@ include("./ml_core.jl")
 using .Const, .MLcore, LinearAlgebra, Serialization
 
 const state = collect(-Const.dimB+1:2:Const.dimB-1)
-const ϵ = Const.t * abs.(cos.(π / Const.dimB * state))
 
 function energy(β)
 
+    ϵ = Const.t * abs.(cos.(π / Const.dimB * state))
     return -sum(ϵ .* tanh.(β * ϵ)) / Const.dimB 
 end
 
@@ -19,8 +19,7 @@ end
 function df(t)
 
     ϵ = Const.t * abs.(cos.(π / Const.dimB * state))
-    x = sign.(cos.(π / Const.dimB * state) .- μ / Const.t)
-    return sum(-log.(cosh.(ϵ / t)) .+ (x .* ϵ / t .* tanh.(ϵ / t)))
+    return sum(-log.(cosh.(ϵ / t)) .+ (ϵ / t .* tanh.(ϵ / t)))
 end
 
 function s(u, t)
@@ -86,15 +85,15 @@ function test2()
     for iβ in 1:1000
         β = iβ * 0.01
    
-        ϵ = energy(β, 0.0)
+        ϵ = energy(β)
 
         # Write energy
         write(f, string(β))
         write(f, "\t")
-        write(f, string(ϵ))
+        write(f, string(ϵ + 1.0))
         write(f, "\t")
         write(f, string(-3.0 * Const.J / 8.0 * sinh(Const.J * β / 2.0) / 
-                        (exp(Const.J * β / 2.0) + cosh(Const.J * β / 2.0))))
+                        (exp(Const.J * β / 2.0) + cosh(Const.J * β / 2.0)) + 0.125))
         write(f, "\n")
     end
     close(f)
@@ -123,6 +122,8 @@ function calculate()
         write(f, string(-3.0 * Const.J / 8.0 * sinh(Const.J * β / 2.0) / 
                         (exp(Const.J * β / 2.0) + cosh(Const.J * β / 2.0)) + 
                        0.125))
+        write(f, "\t")
+        write(f, string(numberB / Const.dimB))
         write(f, "\n")
 
 
@@ -132,10 +133,7 @@ function calculate()
     close(f)
 end
 
-#calculate()
-a = chemical_potential(100.0, 0.6)
-println(a)
-println(particle_number(100.0, a) / Const.dimB)
+calculate()
 #test2()
 
 
