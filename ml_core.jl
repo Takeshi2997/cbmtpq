@@ -49,7 +49,7 @@ module MLcore
 
             activationS = weight * s .+ biasB
             realactivationS = 2.0 * real.(activationS)
-            nnext = Update.bath(realactivationS)
+            nnext = Update.bath(n, realactivationS)
 
             eS = Func.energyS_shift(s, activationB)
             eB = Func.energyB_shift(n, activationS, network.μ)
