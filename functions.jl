@@ -2,32 +2,6 @@ module Func
     include("./setup.jl")
     using .Const, LinearAlgebra
 
-    function updateS(z)
-
-        s = -ones(Float64, Const.dimS)
-        prob = 1.0 ./ (1.0 .+ exp.(-2.0 * z))
-        pup = rand(Float64, Const.dimS)
-        for ix in 1:Const.dimS
-            if pup[ix] < prob[ix]
-                s[ix] = 1.0
-            end
-        end
-        return s
-    end
-
-    function updateB(z)
-
-        n = ones(Float64, Const.dimB)
-        prob = 1.0 ./ (1.0 .+ exp.(z))
-        pup = rand(Float64, Const.dimB)
-        for ix in 1:Const.dimB
-            if pup[ix] < prob[ix]
-                n[ix] = 0.0
-            end
-        end
-        return n
-    end
-
     function hamiltonianS_shift(s, z)
 
         out = 1.0

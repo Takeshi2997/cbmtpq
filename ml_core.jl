@@ -1,7 +1,8 @@
 module MLcore
     include("./setup.jl")
     include("./functions.jl")
-    using .Const, .Func, LinearAlgebra
+    include("./update.jl")
+    using .Const, .Func, .Update, LinearAlgebra
 
     mutable struct Network
     
@@ -17,8 +18,8 @@ module MLcore
         biasB  = network.biasB .- network.μ / 2.0
         biasS  = network.biasS
 
-        n = zeros(Float64, Const.dimB)
-        s = -ones(Float64, Const.dimB)
+        n = rand([1.0, 0.0], Const.dimB)
+        s = rand([1.0, -1.0], Const.dimS)
         energy  = 0.0
         energyS = 0.0
         energyB = 0.0
@@ -34,21 +35,21 @@ module MLcore
         for i in 1:Const.burnintime
             activationB = transpose(weight) * n .+ biasS
             realactivationB = 2.0 * real.(activationB)
-            s = Func.updateS(realactivationB)
+            s = Update.system(s, realactivationB)
 
             activationS = weight * s .+ biasB
             realactivationS = 2.0 * real.(activationS)
-            n = Func.updateB(realactivationS)
+            n = Update.bath(n, realactivationS)
         end
 
         for i in 1:Const.iters_num
             activationB = transpose(weight) * n .+ biasS
             realactivationB = 2.0 * real.(activationB)
-            s = Func.updateS(realactivationB)
+            s = Update.system(s, realactivationB)
 
             activationS = weight * s .+ biasB
             realactivationS = 2.0 * real.(activationS)
-            nnext = Func.updateB(realactivationS)
+            nnext = Update.bath(realactivationS)
 
             eS = Func.energyS_shift(s, activationB)
             eB = Func.energyB_shift(n, activationS, network.μ)
@@ -103,21 +104,21 @@ module MLcore
         for i in 1:Const.burnintime
             activationB = transpose(weight) * n .+ biasS
             realactivationB = 2.0 * real.(activationB)
-            s = Func.updateS(realactivationB)
+            s = Update.system(s, realactivationB)
 
             activationS = weight * s .+ biasB
             realactivationS = 2.0 * real.(activationS)
-            n = Func.updateB(realactivationS)
+            n = Update.bath(n, realactivationS)
         end
 
         for i in 1:Const.num
             activationB = transpose(weight) * n .+ biasS
             realactivationB = 2.0 * real.(activationB)
-            s = Func.updateS(realactivationB)
+            s = Update.system(s, realactivationB)
 
             activationS = weight * s .+ biasB
             realactivationS = 2.0 * real.(activationS)
-            nnext = Func.updateB(realactivationS)
+            nnext = Update.bath(n, realactivationS)
 
             eS = Func.energyS_shift(s, activationB)
             eB = Func.energyB_shift(n, activationS, μ)
