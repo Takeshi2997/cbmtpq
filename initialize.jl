@@ -12,7 +12,7 @@ module Init
 
         # Initialize weight, bias
         weight  = rand(Float64, Const.dimH, Const.dimV) .* 
-        exp.(2.0 * π * rand(Float64, Const.dimH, Const.dimV))
+        exp.(2.0 * π * im * rand(Float64, Const.dimH, Const.dimV))
         biasH = zeros(Complex{Float64}, Const.dimH)
         biasV = zeros(Complex{Float64}, Const.dimV)
    

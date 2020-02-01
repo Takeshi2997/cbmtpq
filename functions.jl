@@ -2,46 +2,39 @@ module Func
     include("./setup.jl")
     using .Const, LinearAlgebra, Random
 
-    function updateV(v, rate)
+    function updateV(v, weight, biasH, biasV)
 
         rng = MersenneTwister(1234)
 
-        s = -ones(Float64, Const.dimS)
-        n = ones(Float64, Const.dimB)
-        v = vcat(n, s)
-        probB = 1.0 ./ (1.0 .+ exp.(z[1:Const.dimB]))
-        probS = 1.0 ./ (1.0 .+ exp.(-2.0 * z[Const.dimB+1:end]))
-        prob  = vcat(probB, probS)
-        pflip = rand(rng, Const.dimV)
-
         for iy in 1:Const.dimB
-            if pflip[iy] < prob[iy]
-                v[iy] = 0.0
+            vflip     = copy(v)
+            vflip[iy] = 1.0 - v[iy]
+            rate = prod(abs2.(ψ(vflip, weight, biasH, biasV) ./ ψ(v, weight, biasH, biasV)))
+            if 1.0 > rate
+                prob = rand(rng)
+                if prob < rate
+                    v[iy] = vflip[iy]
+                end
+            else
+                v[iy] = vflip[iy]
             end
         end
-        for ix in Const.dimB+1:Const.dimB+Const.dimS
-            if pflip[ix] < prob[ix]
-                v[ix] = 1.0
+
+        for ix in Const.dimB+1:Const.dimV
+            vflip     = copy(v)
+            vflip[ix] = -v[ix]
+            rate = prod(abs2.(ψ(vflip, weight, biasH, biasV) ./ ψ(v, weight, biasH, biasV)))
+            if 1.0 > rate
+                prob = rand(rng)
+                if prob < rate
+                    v[ix] = vflip[ix]
+                end
+            else
+                v[ix] = vflip[ix]
             end
         end
 
         return v
-    end
-
-    function updateH(h, z)
-
-        rng = MersenneTwister(1234)
-
-        h = -ones(Float64, Const.dimH)
-        prob = 1.0 ./ (1.0 .+ exp.(-2.0 * z))
-        pflip = rand(rng, Const.dimH)
-        for ix in 1:Const.dimH
-            if pflip[ix] < prob[ix]
-                h[ix] = 1.0
-            end
-        end
-
-        return h
     end
 
     function hamiltonianS_shift(v, weight, biasH, biasV, ix)
@@ -74,7 +67,8 @@ module Func
 
     function ψ(v, weight, biasH, biasV)
 
-        return exp(transpose(biasV) * v) * cosh.(weight * v .+ biasH)
+        out = exp(transpose(biasV) * v) * cosh.(weight * v .+ biasH)
+        return out
     end
 
     function energy_shift(v, weight, biasH, biasV)

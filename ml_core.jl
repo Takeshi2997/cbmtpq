@@ -18,8 +18,7 @@ module MLcore
 
         n = rand([1.0, 0.0], Const.dimB)
         s = rand([1.0, -1.0], Const.dimS)
-        x = vcat(n, s)
-        h = rand([1.0, -1.0], Const.dimH)
+        v = vcat(n, s)
         energy  = 0.0
         energyS = 0.0
         energyB = 0.0
@@ -32,28 +31,18 @@ module MLcore
         dbiasV    = zeros(Complex{Float64}, Const.dimV)
 
         for i in 1:Const.burnintime
-            activationH = transpose(weight) * h .+ biasV
-            realactivationH = 2.0 * real.(activationH)
-            v = Func.updateV(realactivationH)
-
-            activationV = weight * v .+ biasH
-            realactivationV = 2.0 * real.(activationV)
-            h = Func.updateH(realactivationV)
+            v = Func.updateV(v, weight, biasH, biasV)
         end
 
         for i in 1:Const.iters_num
-            activationH = transpose(weight) * h .+ biasV
-            realactivationH = 2.0 * real.(activationH)
-            v = Func.updateV(realactivationH)
-
+            v = Func.updateV(v, weight, biasH, biasV)
             activationV = weight * v .+ biasH
-            realactivationV = 2.0 * real.(activationV)
-            h = Func.updateH(realactivationV)
-
+ 
             n = v[1:Const.dimB]
             s = v[Const.dimB+1:end]
 
             eS, eB = Func.energy_shift(v, weight, biasH, biasV)
+
             e  = eS + eB
             energy    += e
             energyS   += eS
@@ -90,32 +79,19 @@ module MLcore
 
         n = rand([1.0, 0.0], Const.dimB)
         s = rand([1.0, -1.0], Const.dimS)
-        x = vcat(n, s)
-        h = rand([1.0, -1.0], Const.dimH)
+        v = vcat(n, s)
         energy  = 0.0
         energyS = 0.0
         energyB = 0.0
         numberB = 0.0
 
         for i in 1:Const.burnintime
-            activationH = transpose(weight) * h .+ biasV
-            realactivationH = 2.0 * real.(activationH)
-            v = Func.updateV(realactivationH)
-
-            activationV = weight * v .+ biasH
-            realactivationV = 2.0 * real.(activationV)
-            h = Func.updateH(realactivationV)
+            v = Func.updateV(v, weight, biasH, biasV)
         end
 
         for i in 1:Const.num
-            activationH = transpose(weight) * h .+ biasV
-            realactivationH = 2.0 * real.(activationH)
-            v = Func.updateV(realactivationB)
-
-            activationV = weight * v .+ biasH
-            realactivationV = 2.0 * real.(activationV)
-            h = Func.updateH(realactivationV)
-
+            v = Func.updateV(v, weight, biasH, biasV)
+ 
             n = v[1:Const.dimB]
             s = v[Const.dimB+1:end]
 
