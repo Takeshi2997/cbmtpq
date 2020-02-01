@@ -1,8 +1,6 @@
 module Init
     include("./setup.jl")
-    include("./functions.jl")
-    include("./ml_core.jl")
-    using .Const, .Func, .MLcore, LinearAlgebra, Serialization, ComplexValues
+    using .Const, LinearAlgebra, Serialization, ComplexValues
 
     function network()
 
@@ -13,15 +11,12 @@ module Init
         filename = dirname * "/param_at_" * lpad(0, 3, "0") * ".dat"
 
         # Initialize weight, bias
-        weight  = -ones(Complex{Float64}, Const.dimB, Const.dimS) * 0.0001
-        for n in 1:Int64(Const.dimB/Const.dimS)-1
-            weight[Const.dimS*n+1:(n+1)*Const.dimS, :] += 
-            diagm(0 => ones(Complex{Float64}, Const.dimS)) * (im * π / 2.0)
-        end
-        biasB = zeros(Complex{Float64}, Const.dimB)
-        biasS = zeros(Complex{Float64}, Const.dimS)
+        weight  = rand(Float64, Const.dimH, Const.dimV) .* 
+        exp.(2.0 * π * rand(Float64, Const.dimH, Const.dimV))
+        biasH = zeros(Complex{Float64}, Const.dimH)
+        biasV = zeros(Complex{Float64}, Const.dimV)
    
-        network = (weight, biasB, biasS, 0.0)
+        network = (weight, biasH, biasV)
         # Write
         open(io -> serialize(io, network), filename, "w")
     end

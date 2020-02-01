@@ -133,7 +133,7 @@ function calculate()
     close(f)
 end
 
-calculate()
-#test2()
+#calculate()
+test2()
 
 
