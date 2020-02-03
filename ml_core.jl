@@ -6,15 +6,13 @@ module MLcore
     mutable struct Network
     
         weight::Array{Complex{Float64}, 2}
-        biasB::Array{Complex{Float64}, 1}
-        biasS::Array{Complex{Float64}, 1}
+        bias::Array{Complex{Float64}, 1}
     end
 
     function diff_error(network, ϵ)
 
         weight = network.weight
-        biasB  = network.biasB
-        biasS  = network.biasS
+        bias  = network.bias
 
         n = rand([1.0, 0.0], Const.dimB)
         s = rand([1.0, -1.0], Const.dimS)
@@ -24,43 +22,34 @@ module MLcore
         numberB = 0.0
         dweight_h = zeros(Complex{Float64}, Const.dimB, Const.dimS)
         dweight   = zeros(Complex{Float64}, Const.dimB, Const.dimS)
-        dbiasB_h  = zeros(Complex{Float64}, Const.dimB)
-        dbiasB    = zeros(Complex{Float64}, Const.dimB)
-        dbiasS_h  = zeros(Complex{Float64}, Const.dimS)
-        dbiasS    = zeros(Complex{Float64}, Const.dimS)
+        dbias_h   = zeros(Complex{Float64}, Const.dimB)
+        dbias     = zeros(Complex{Float64}, Const.dimB)
 
         for i in 1:Const.burnintime
-            activationB = transpose(weight) * n .+ biasS
-            realactivationB = 2.0 * real.(activationB)
-            s = Func.updateS(s, realactivationB)
+            s = Func.updateS(s, weight, bias, n)
 
-            activationS = weight * s .+ biasB
-            realactivationS = 2.0 * real.(activationS)
-            n = Func.updateB(n, realactivationS)
+            activationS = weight * s .+ bias
+            n = Func.updateB(n, activationS)
         end
 
         for i in 1:Const.iters_num
-            activationB = transpose(weight) * n .+ biasS
-            realactivationB = 2.0 * real.(activationB)
-            s = Func.updateS(s, realactivationB)
+            s = Func.updateS(s, weight, bias, n)
 
-            activationS = weight * s .+ biasB
-            realactivationS = 2.0 * real.(activationS)
-            nnext = Func.updateB(n, realactivationS)
+            activationS = weight * s .+ bias
+            nnext = Func.updateB(n, activationS)
 
-            eS = Func.energyS_shift(s, activationB)
+            factor = 1.0 .+ Func.dσ.(activationS)
+            eS = Func.energyS_shift(s, weight, bias, n)
             eB = Func.energyB_shift(n, activationS)
             e  = eS + eB
             energy    += e
             energyS   += eS
             energyB   += eB
             numberB   += sum(n)
-            dweight_h += transpose(s) .* n * e
-            dweight   += transpose(s) .* n
-            dbiasB_h  += n * e
-            dbiasB    += n
-            dbiasS_h  += s * e
-            dbiasS    += s
+            dweight_h += transpose(s) .* n .* factor * e
+            dweight   += transpose(s) .* n .* factor 
+            dbias_h   += n .* factor * e
+            dbias     += n .* factor 
 
             n = nnext
         end
@@ -70,21 +59,18 @@ module MLcore
         numberB   /= Const.iters_num
         dweight_h /= Const.iters_num
         dweight   /= Const.iters_num
-        dbiasB_h  /= Const.iters_num
-        dbiasB    /= Const.iters_num
-        dbiasS_h  /= Const.iters_num
-        dbiasS    /= Const.iters_num
+        dbias_h   /= Const.iters_num
+        dbias     /= Const.iters_num
         error   = (energy - ϵ)^2
 
         diff_weight = 2.0 * (energy - ϵ) * (dweight_h - energy * dweight)
-        diff_biasB  = 2.0 * (energy - ϵ) * (dbiasB_h - energy * dbiasB)
-        diff_biasS  = 2.0 * (energy - ϵ) * (dbiasS_h - energy * dbiasS)
+        diff_bias   = 2.0 * (energy - ϵ) * (dbias_h - energy * dbias)
 
         return error, energyS, energyB, numberB, 
-        diff_weight, diff_biasB, diff_biasS
+        diff_weight, diff_bias
     end
 
-    function forward(weight, biasB, biasS)
+    function forward(weight, bias)
 
         n = zeros(Float64, Const.dimB)
         s = -ones(Float64, Const.dimB)
@@ -94,25 +80,19 @@ module MLcore
         numberB = 0.0
 
         for i in 1:Const.burnintime
-            activationB = transpose(weight) * n .+ biasS
-            realactivationB = 2.0 * real.(activationB)
-            s = Func.updateS(s, realactivationB)
+            s = Func.updateS(s, weight, bias, n)
 
-            activationS = weight * s .+ biasB
-            realactivationS = 2.0 * real.(activationS)
-            n = Func.updateB(n, realactivationS)
+            activationS = weight * s .+ bias
+            n = Func.updateB(n, activationS)
         end
 
         for i in 1:Const.num
-            activationB = transpose(weight) * n .+ biasS
-            realactivationB = 2.0 * real.(activationB)
-            s = Func.updateS(s, realactivationB)
+            s = Func.updateS(s, weight, bias, n)
 
-            activationS = weight * s .+ biasB
-            realactivationS = 2.0 * real.(activationS)
-            nnext = Func.updateB(n, realactivationS)
+            activationS = weight * s .+ bias
+            nnext = Func.updateB(n, activationS)
 
-            eS = Func.energyS_shift(s, activationB)
+            eS = Func.energyS_shift(s, weight, bias, n)
             eB = Func.energyB_shift(n, activationS)
             e  = eS + eB
             energy    += e

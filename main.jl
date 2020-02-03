@@ -17,8 +17,7 @@ function main()
 
         # Initialize weight, bias
         wmoment = zeros(Complex{Float32}, Const.dimB, Const.dimS)
-        bmomentB = zeros(Complex{Float32}, Const.dimB)
-        bmomentS = zeros(Complex{Float32}, Const.dimS)
+        bmoment = zeros(Complex{Float32}, Const.dimB)
         error   = 0.0
         energyS = 0.0
         energyB = 0.0
@@ -32,16 +31,14 @@ function main()
         for it in 1:Const.it_num
 
             error, energyS, energyB, numberB, 
-            dweight, dbiasB, dbiasS = 
+            dweight, dbias = 
             MLcore.diff_error(network, ϵ)
 
             # Optimize
             wmoment         = 0.9 * wmoment - lr * dweight
             network.weight += wmoment
-            bmomentB        = 0.9 * bmomentB - lr * dbiasB
-            network.biasB  += bmomentB
-            bmomentS        = 0.9 * bmomentS - lr * dbiasS
-            network.biasS  += bmomentS
+            bmoment         = 0.9 * bmoment - lr * dbias
+            network.bias   += bmoment
 
             write(f, string(it))
             write(f, "\t")
@@ -67,7 +64,7 @@ function main()
 #        write(f, string(numberB / Const.dimB))
 #        write(f, "\n")
 
-        params = (network.weight, network.biasB, network.biasS)
+        params = (network.weight, network.bias)
         open(io -> serialize(io, params), filename, "w")
     end
     close(f)
