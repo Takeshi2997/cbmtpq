@@ -1,6 +1,40 @@
 module Func
     include("./setup.jl")
-    using .Const, LinearAlgebra
+    using .Const, LinearAlgebra, Random
+
+    function updateS(s, z)
+
+        rate = exp.(-2.0 * s .* z)
+        for ix in 1:Const.dimS
+            if 1.0 > rate[ix]
+                prob = rand(Float64)
+                if prob < rate[ix]
+                    s[ix] *= -1.0
+                end
+            else
+                s[ix] *= -1.0
+            end
+        end
+
+        return s
+    end
+
+    function updateB(n, z)
+        
+        rate = exp.((1.0 .- 2.0 * n) .* z)
+        for iy in 1:Const.dimB
+            if 1.0 > rate[iy]
+                prob = rand(Float64)
+                if prob < rate[iy]
+                    n[iy] = 1.0 - n[iy]
+                end
+            else
+                n[iy] = 1.0 - n[iy]
+            end
+        end
+
+        return n
+    end
 
     function hamiltonianS_shift(s, z)
 

@@ -1,8 +1,6 @@
 module Init
     include("./setup.jl")
-    include("./functions.jl")
-    include("./ml_core.jl")
-    using .Const, .Func, .MLcore, LinearAlgebra, Serialization, ComplexValues
+    using .Const, LinearAlgebra, Serialization, ComplexValues
 
     function network()
 
