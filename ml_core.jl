@@ -9,13 +9,12 @@ module MLcore
         weight::Array{Complex{Float64}, 2}
         biasB::Array{Complex{Float64}, 1}
         biasS::Array{Complex{Float64}, 1}
-        μ::Float64
     end
 
     function diff_error(network, ϵ)
 
         weight = network.weight
-        biasB  = network.biasB .- network.μ / 2.0
+        biasB  = network.biasB
         biasS  = network.biasS
 
         n = rand([1.0, 0.0], Const.dimB)
@@ -24,7 +23,6 @@ module MLcore
         energyS = 0.0
         energyB = 0.0
         numberB = 0.0
-        numbrB2 = 0.0
         dweight_h = zeros(Complex{Float64}, Const.dimB, Const.dimS)
         dweight   = zeros(Complex{Float64}, Const.dimB, Const.dimS)
         dbiasB_h  = zeros(Complex{Float64}, Const.dimB)
@@ -52,13 +50,12 @@ module MLcore
             nnext = Update.bath(n, realactivationS)
 
             eS = Func.energyS_shift(s, activationB)
-            eB = Func.energyB_shift(n, activationS, network.μ)
+            eB = Func.energyB_shift(n, activationS)
             e  = eS + eB
             energy    += e
             energyS   += eS
             energyB   += eB
             numberB   += sum(n)
-            numbrB2   += sum(n)^2
             dweight_h += transpose(s) .* n * e
             dweight   += transpose(s) .* n
             dbiasB_h  += n * e
@@ -72,7 +69,6 @@ module MLcore
         energyS    = real(energyS) / Const.iters_num
         energyB    = real(energyB) / Const.iters_num
         numberB   /= Const.iters_num
-        numbrB2   /= Const.iters_num
         dweight_h /= Const.iters_num
         dweight   /= Const.iters_num
         dbiasB_h  /= Const.iters_num
@@ -80,19 +76,16 @@ module MLcore
         dbiasS_h  /= Const.iters_num
         dbiasS    /= Const.iters_num
         error   = (energy - ϵ)^2
-        numverB = numbrB2 - numberB^2
 
         diff_weight = 2.0 * (energy - ϵ) * (dweight_h - energy * dweight)
         diff_biasB  = 2.0 * (energy - ϵ) * (dbiasB_h - energy * dbiasB)
         diff_biasS  = 2.0 * (energy - ϵ) * (dbiasS_h - energy * dbiasS)
 
-        return error, energyS, energyB, numberB, numverB,
+        return error, energyS, energyB, numberB, 
         diff_weight, diff_biasB, diff_biasS
     end
 
-    function forward(weight, biasB, biasS, μ)
-
-        biasB .-= μ / 2.0
+    function forward(weight, biasB, biasS)
 
         n = zeros(Float64, Const.dimB)
         s = -ones(Float64, Const.dimB)
@@ -121,7 +114,7 @@ module MLcore
             nnext = Update.bath(n, realactivationS)
 
             eS = Func.energyS_shift(s, activationB)
-            eB = Func.energyB_shift(n, activationS, μ)
+            eB = Func.energyB_shift(n, activationS)
             e  = eS + eB
             energy    += e
             energyS   += eS

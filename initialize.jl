@@ -21,7 +21,7 @@ module Init
         biasB = zeros(Complex{Float64}, Const.dimB)
         biasS = zeros(Complex{Float64}, Const.dimS)
    
-        network = (weight, biasB, biasS, 0.0)
+        network = (weight, biasB, biasS)
         # Write
         open(io -> serialize(io, network), filename, "w")
     end
