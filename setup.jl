@@ -16,5 +16,5 @@ module Const
     const num = 20000
 
     # Learning Rate
-    const lr = 0.000001
+    const lr = 0.00001
 end

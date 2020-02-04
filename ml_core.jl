@@ -1,7 +1,8 @@
 module MLcore
     include("./setup.jl")
     include("./functions.jl")
-    using .Const, .Func, LinearAlgebra
+    include("./ann.jl")
+    using .Const, .Func, .ANN, LinearAlgebra
 
     mutable struct Network
     
@@ -28,17 +29,19 @@ module MLcore
         for i in 1:Const.burnintime
             s = Func.updateS(s, weight, bias, n)
 
-            activationS = weight * s .+ bias
+            z = weight * s .+ bias
+            activationS = ANN.forward(z)
             n = Func.updateB(n, activationS)
         end
 
         for i in 1:Const.iters_num
             s = Func.updateS(s, weight, bias, n)
 
-            activationS = weight * s .+ bias
+            z = weight * s .+ bias
+            activationS = ANN.forward(z)
             nnext = Func.updateB(n, activationS)
 
-            factor = 1.0 .+ Func.dσ.(activationS)
+            factor = ANN.backward(z)
             eS = Func.energyS_shift(s, weight, bias, n)
             eB = Func.energyB_shift(n, activationS)
             e  = eS + eB

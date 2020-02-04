@@ -1,9 +1,7 @@
 module Func
     include("./setup.jl")
-    using .Const, LinearAlgebra, Random
-
-    σ(x::ComplexF64)   = 1.0 / (1.0 + exp(-x))
-    dσ(x::ComplexF64)  = σ(x) * (1.0 - σ(x))
+    include("./ann.jl")
+    using .Const, .ANN, LinearAlgebra, Random
 
     function updateS(s::Array, weight::Array{ComplexF64, 2}, bias::Array{ComplexF64, 1}, n::Array)
 
@@ -12,8 +10,8 @@ module Func
             sflip[ix] *= -1
             xflip = weight * sflip .+ bias
             x     = weight * s .+ bias
-            zflip = xflip .+ σ.(xflip)
-            z     = x .+ σ.(x)
+            zflip = ANN.forward(xflip)
+            z     = ANN.forward(x)
             rate = abs2(ψ(n, zflip) / ψ(n, z))
             if 1.0 > rate
                 prob = rand(Float64)
@@ -30,7 +28,7 @@ module Func
 
     function updateB(n::Array, z::Array{ComplexF64, 1})
         
-        rate = abs2.(exp.((1.0 .- 2.0 * n) .* σ.(z)))
+        rate = exp.((1.0 .- 2.0 * n) .* real.(z) * 2.0)
         for iy in 1:Const.dimB
             if 1.0 > rate[iy]
                 prob = rand(Float64)
@@ -61,8 +59,8 @@ module Func
             sflip[ixnext] *= -1
             xflip = weight * sflip .+ bias
             x     = weight * s .+ bias
-            zflip = xflip .+ σ.(xflip)
-            z     = x .+ σ.(x)
+            zflip = ANN.forward(xflip)
+            z     = ANN.forward(x)
             out = -1.0 + 2.0 * ψ(n, zflip) / ψ(n, z)
         end
 
