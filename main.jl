@@ -8,9 +8,9 @@ function main()
     dirname = "./data"
 
     f = open("error.txt", "w")
-    for iϵ in 1:Const.iϵmax
+    for iϵ in 1:1 #Const.iϵmax
     
-        ϵ = (0.9 - 0.5 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dimB
+        ϵ = (0.0 - 0.5 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dimB
 
         filename = dirname * "/param_at_" * lpad(iϵ, 3, "0") * ".dat"
         filenameinit = dirname * "/param_at_000.dat"
@@ -50,33 +50,33 @@ function main()
             μm = 0.9 * μm + dμ
             network.μ += μm
 
-#            write(f, string(it))
-#            write(f, "\t")
-#            write(f, string(error))
-#            write(f, "\t")
-#            write(f, string(energyS / Const.dimS))
-#            write(f, "\t")
-#            write(f, string(energyB / Const.dimB))
-#            write(f, "\t")
-#            write(f, string(numberB / Const.dimB))
-#            write(f, "\t")
-#            write(f, string(network.μ))
-#            write(f, "\n")
+            write(f, string(it))
+            write(f, "\t")
+            write(f, string(error))
+            write(f, "\t")
+            write(f, string(energyS / Const.dimS))
+            write(f, "\t")
+            write(f, string(energyB / Const.dimB))
+            write(f, "\t")
+            write(f, string(numberB / Const.dimB))
+            write(f, "\t")
+            write(f, string(network.μ))
+            write(f, "\n")
         end
    
         # Write error
-        write(f, string(iϵ))
-        write(f, "\t")
-        write(f, string(error))
-        write(f, "\t")
-        write(f, string(energyB / Const.dimB))
-        write(f, "\t")
-        write(f, string(energyS / Const.dimS))
-        write(f, "\t")
-        write(f, string(numberB / Const.dimB))
-        write(f, "\t")
-        write(f, string(network.μ))
-        write(f, "\n")
+#        write(f, string(iϵ))
+#        write(f, "\t")
+#        write(f, string(error))
+#        write(f, "\t")
+#        write(f, string(energyB / Const.dimB))
+#        write(f, "\t")
+#        write(f, string(energyS / Const.dimS))
+#        write(f, "\t")
+#        write(f, string(numberB / Const.dimB))
+#        write(f, "\t")
+#        write(f, string(network.μ))
+#        write(f, "\n")
 
         params = (network.weight, network.biasB, network.biasS, network.μ)
         open(io -> serialize(io, params), filename, "w")

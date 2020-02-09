@@ -1,8 +1,7 @@
 module MLcore
     include("./setup.jl")
     include("./functions.jl")
-    include("./update.jl")
-    using .Const, .Func, .Update, LinearAlgebra
+    using .Const, .Func, LinearAlgebra
 
     mutable struct Network
     
@@ -35,21 +34,21 @@ module MLcore
         for i in 1:Const.burnintime
             activationB = transpose(weight) * n .+ biasS
             realactivationB = 2.0 * real.(activationB)
-            s = Update.system(s, realactivationB)
+            s = Func.updateS(s, realactivationB)
 
             activationS = weight * s .+ biasB
             realactivationS = 2.0 * real.(activationS)
-            n = Update.bath(n, realactivationS)
+            n = Func.updateB(n, realactivationS)
         end
 
         for i in 1:Const.iters_num
             activationB = transpose(weight) * n .+ biasS
             realactivationB = 2.0 * real.(activationB)
-            s = Update.system(s, realactivationB)
+            s = Func.updateS(s, realactivationB)
 
             activationS = weight * s .+ biasB
             realactivationS = 2.0 * real.(activationS)
-            nnext = Update.bath(n, realactivationS)
+            nnext = Func.updateB(n, realactivationS)
 
             eS = Func.energyS_shift(s, activationB)
             eB = Func.energyB_shift(n, activationS, network.μ)
