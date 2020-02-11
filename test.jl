@@ -10,7 +10,3 @@ B = -[1 0 0 0
 
 v = [1.0, 1.0, 1.0, 1.0] * im
 
-ANN.initialize(B, v)
- 
-println(ANN.network.w)
-println(ANN.network.b)
