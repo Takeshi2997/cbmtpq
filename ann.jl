@@ -2,6 +2,7 @@ module ANN
     include("./setup.jl")
     using .Const, LinearAlgebra
 
+<<<<<<< HEAD
     function backward(o, oe, n, s, e)
 
         dw = transpose(s) .* n
@@ -20,5 +21,6 @@ module ANN
         network.w += moment.w
         moment.b   = 0.9 * moment.b - lr * Δb
         network.b += moment.b        
+>>>>>>> origin/ann
     end
 end

@@ -16,5 +16,7 @@ module Const
     const num = 20000
 
     # Learning Rate
+<<<<<<< HEAD
     const lr = 0.000001
+>>>>>>> origin/ann
 end

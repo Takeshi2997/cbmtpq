@@ -17,6 +17,8 @@ function main()
         filenameinit = dirname * "/param_at_000.dat"
 
         # Initialize weight, bias
+<<<<<<< HEAD
+>>>>>>> origin/ann
         error   = 0.0
         energy  = 0.0
         energyS = 0.0
@@ -32,12 +34,14 @@ function main()
         # Learning
         for it in 1:Const.it_num
 
+<<<<<<< HEAD
             #Calculate expected value
             error, energy, energyS, energyB, numberB =
             MLcore.sampling(network, ϵ)
 
             #Update Parameter
             MLcore.updateparam(network, moment, energy, ϵ, lr)
+>>>>>>> origin/ann
 
             write(f, string(it))
             write(f, "\t")
@@ -63,7 +67,9 @@ function main()
 #        write(f, string(numberB / Const.dimB))
 #        write(f, "\n")
 
+<<<<<<< HEAD
         params = (network.w, network.b)
+>>>>>>> origin/ann
         open(io -> serialize(io, params), filename, "w")
     end
     close(f)

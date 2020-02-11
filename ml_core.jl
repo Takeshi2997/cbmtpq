@@ -4,6 +4,7 @@ module MLcore
     include("./ann.jl")
     using .Const, .Func, .ANN, LinearAlgebra
 
+<<<<<<< HEAD
     mutable struct O
 
         w::Array{Complex{Float64}, 2}
@@ -14,6 +15,7 @@ module MLcore
 
         w::Array{Complex{Float64}, 2}
         b::Array{Complex{Float64}, 1}
+>>>>>>> origin/ann
     end
 
     o  = O(zeros(ComplexF64, Const.dimB, Const.dimS), 
@@ -21,7 +23,9 @@ module MLcore
     oe = OE(zeros(ComplexF64, Const.dimB, Const.dimS), 
                 zeros(ComplexF64, Const.dimB))
 
+<<<<<<< HEAD
     function sampling(network, ϵ)
+>>>>>>> origin/ann
 
         n = rand([1.0, 0.0], Const.dimB)
         s = rand([1.0, -1.0], Const.dimS)
@@ -29,6 +33,7 @@ module MLcore
         energyS = 0.0
         energyB = 0.0
         numberB = 0.0
+<<<<<<< HEAD
 
         for i in 1:Const.burnintime
 
@@ -42,18 +47,22 @@ module MLcore
  
             eS = Func.energyS_shift(s, n, network)
             eB = Func.energyB_shift(n, s, network)
+>>>>>>> origin/ann
             e  = eS + eB
             energy    += e
             energyS   += eS
             energyB   += eB
             numberB   += sum(n)
+<<<<<<< HEAD
             ANN.backward(o, oe, n, s, e)
+>>>>>>> origin/ann
             n = nnext
         end
         energy     = real(energy) / Const.iters_num
         energyS    = real(energyS) / Const.iters_num
         energyB    = real(energyB) / Const.iters_num
         numberB   /= Const.iters_num
+<<<<<<< HEAD
         error   = (energy - ϵ)^2
 
         return error, energy, energyS, energyB, numberB
@@ -71,9 +80,10 @@ module MLcore
         setfield!(o,  :b, zeros(ComplexF64, Const.dimB))
         setfield!(oe, :w, zeros(ComplexF64, Const.dimB, Const.dimS))
         setfield!(oe, :b, zeros(ComplexF64, Const.dimB))
+>>>>>>> origin/ann
     end
 
-    function forward(weight, biasB, biasS)
+    function forward(weight, bias)
 
         n = zeros(Float64, Const.dimB)
         s = -ones(Float64, Const.dimB)
@@ -83,25 +93,19 @@ module MLcore
         numberB = 0.0
 
         for i in 1:Const.burnintime
-            activationB = transpose(weight) * n .+ biasS
-            realactivationB = 2.0 * real.(activationB)
-            s = Func.updateS(s, realactivationB)
+            s = Func.updateS(s, weight, bias, n)
 
-            activationS = weight * s .+ biasB
-            realactivationS = 2.0 * real.(activationS)
-            n = Func.updateB(n, realactivationS)
+            activationS = weight * s .+ bias
+            n = Func.updateB(n, activationS)
         end
 
         for i in 1:Const.num
-            activationB = transpose(weight) * n .+ biasS
-            realactivationB = 2.0 * real.(activationB)
-            s = Func.updateS(s, realactivationB)
+            s = Func.updateS(s, weight, bias, n)
 
-            activationS = weight * s .+ biasB
-            realactivationS = 2.0 * real.(activationS)
-            nnext = Func.updateB(n, realactivationS)
+            activationS = weight * s .+ bias
+            nnext = Func.updateB(n, activationS)
 
-            eS = Func.energyS_shift(s, activationB)
+            eS = Func.energyS_shift(s, weight, bias, n)
             eB = Func.energyB_shift(n, activationS)
             e  = eS + eB
             energy    += e
