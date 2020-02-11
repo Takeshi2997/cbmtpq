@@ -2,8 +2,9 @@ module Func
     include("./setup.jl")
     using .Const, LinearAlgebra, Random
 
-    function updateS(s, z)
+    function updateS(s, n, network)
 
+        z = 2.0 * real.(transpose(network.w) * n)
         rate = exp.(-2.0 * s .* z)
         for ix in 1:Const.dimS
             if 1.0 > rate[ix]
@@ -19,8 +20,9 @@ module Func
         return s
     end
 
-    function updateB(n, z)
+    function updateB(n, s, network)
         
+        z = 2.0 * real.(network.w * s .+ network.b)
         rate = exp.((1.0 .- 2.0 * n) .* z)
         for iy in 1:Const.dimB
             if 1.0 > rate[iy]
@@ -46,8 +48,9 @@ module Func
         return -Const.J * out / 4.0 + 1.0 / 4.0
     end
 
-    function energyS_shift(inputs, z)
+    function energyS_shift(inputs, n, network)
 
+        z = transpose(network.w) * n
         sum = 0.0 + 0.0im
         for ix in 1:2:Const.dimS-1
             sum += hamiltonianS_shift(inputs[ix:ix+1], z[ix:ix+1])
@@ -67,8 +70,9 @@ module Func
         return Const.t * out + 1.0
     end
 
-    function energyB_shift(inputn, z)
+    function energyB_shift(inputn, s, network)
 
+        z = network.w * s .+ network.b
         sum = 0.0im
         for ix in 1:Const.dimB-1
             sum += hamiltonianB_shift(inputn[ix:ix+1], z[ix:ix+1])

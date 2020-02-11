@@ -16,10 +16,9 @@ module Init
             weight[Const.dimS*n+1:(n+1)*Const.dimS, :] += 
             diagm(0 => ones(Complex{Float64}, Const.dimS)) * (im * π / 2.0)
         end
-        biasB = zeros(Complex{Float64}, Const.dimB)
-        biasS = zeros(Complex{Float64}, Const.dimS)
+        bias = zeros(Complex{Float64}, Const.dimB)
    
-        network = (weight, biasB, biasS)
+        network = (weight, bias)
         # Write
         open(io -> serialize(io, network), filename, "w")
     end

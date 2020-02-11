@@ -1,24 +1,16 @@
 include("./setup.jl")
-include("./functions.jl")
-include("./ml_core.jl")
-using .Const, .Func, LinearAlgebra, Serialization,
-Combinatorics, InteractiveUtils, .MLcore
+include("./ann.jl")
+using .Const, .ANN, LinearAlgebra, Serialization,
+Combinatorics, InteractiveUtils
 
 B = -[1 0 0 0
      0 -1 2 0
      0 2 -1 0
-     0 0 0 1] ./ 4.0
+     0 0 0 1] * im ./ 4.0
 
-function control(nx, ny)
+v = [1.0, 1.0, 1.0, 1.0] * im
 
-    out = 1.0
-    if nx[1] == nx[2] || nx[1] .== ny[1] || nx[2] .== ny[2]
-        out *= 0.0
-    end
-    return out
-end
-
-
-v = [1 2 3 4 5 6 7]
-
-println(eigvals(B))
+ANN.initialize(B, v)
+ 
+println(ANN.network.w)
+println(ANN.network.b)
