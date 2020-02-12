@@ -19,7 +19,7 @@ module MLcore
     o  = O(zeros(ComplexF64, Const.dimB, Const.dimS), 
            zeros(ComplexF64, Const.dimB))
     oe = OE(zeros(ComplexF64, Const.dimB, Const.dimS), 
-                zeros(ComplexF64, Const.dimB))
+            zeros(ComplexF64, Const.dimB))
 
     function sampling(network, ϵ)
 
