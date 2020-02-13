@@ -11,4 +11,5 @@ init: $(BASE) $(INITS)
 	$(JL) $(INITS)
 
 clean:
-	rm *.txt *.png *.dat
+	-rm -f *.txt *.png *.dat
+	-rm -rf data
