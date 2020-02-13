@@ -2,7 +2,7 @@ include("./setup.jl")
 include("./ml_core.jl")
 include("./params.jl")
 include("./ann.jl")
-using LinearAlgebra, Serialization, InteractiveUtils
+using Serialization, InteractiveUtils
 
 function main()
 
@@ -26,7 +26,7 @@ function main()
         params  = open(deserialize, filenameinit)
         network = Network(params...)
         moment  = Moment(zeros(ComplexF64, dimB, dimS), 
-                         zeros(ComplexF64, dimB))
+                         zeros(ComplexF64, dimS))
 
         # Learning
         for it in 1:it_num

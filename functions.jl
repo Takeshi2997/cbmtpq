@@ -1,9 +1,11 @@
 include("./setup.jl")
+include("./params.jl")
+include("./ann.jl")
 using LinearAlgebra
 
-function updateS(s, n, network)
+function updateS(s::Array{Float64, 1}, n::Array{Float64, 1}, network::Network)
 
-    z = 2.0 * real.(transpose(network.w) * n)
+    z = 2.0 * real.(forward(n, network))
     rate = exp.(-2.0 * s .* z)
     for ix in 1:dimS
         if 1.0 > rate[ix]
@@ -19,9 +21,9 @@ function updateS(s, n, network)
     return s
 end
 
-function updateB(n, s, network)
+function updateB(n::Array{Float64, 1}, s::Array{Float64, 1}, network::Network)
     
-    z = 2.0 * real.(network.w * s .+ network.b)
+    z = 2.0 * real.(network.w * s)
     rate = exp.((1.0 .- 2.0 * n) .* z)
     for iy in 1:dimB
         if 1.0 > rate[iy]
@@ -37,7 +39,7 @@ function updateB(n, s, network)
     return n
 end
 
-function hamiltonianS_shift(s, z)
+function hamiltonianS_shift(s::Array{Float64, 1}, z::Array{ComplexF64, 1})
 
     out = 1.0
     if s[1] != s[2]
@@ -47,9 +49,9 @@ function hamiltonianS_shift(s, z)
     return -J * out / 4.0 + 1.0 / 4.0
 end
 
-function energyS_shift(inputs, n, network)
+function energyS_shift(inputs::Array{Float64, 1}, n::Array{Float64, 1}, network::Network)
 
-    z = transpose(network.w) * n
+    z = forward(n, network)
     sum = 0.0 + 0.0im
     for ix in 1:2:dimS-1
         sum += hamiltonianS_shift(inputs[ix:ix+1], z[ix:ix+1])
@@ -58,7 +60,7 @@ function energyS_shift(inputs, n, network)
     return sum
 end
 
-function hamiltonianB_shift(n, z)
+function hamiltonianB_shift(n::Array{Float64, 1}, z::Array{ComplexF64, 1})
 
     out = 0.0im
     s = (1.0 / 2.0 .- n) * 2.0
@@ -69,9 +71,9 @@ function hamiltonianB_shift(n, z)
     return t * out + 1.0
 end
 
-function energyB_shift(inputn, s, network)
+function energyB_shift(inputn::Array{Float64, 1}, s::Array{Float64, 1}, network::Network)
 
-    z = network.w * s .+ network.b
+    z = network.w * s
     sum = 0.0im
     for ix in 1:dimB-1
         sum += hamiltonianB_shift(inputn[ix:ix+1], z[ix:ix+1])
@@ -81,4 +83,3 @@ function energyB_shift(inputn, s, network)
                        z[end:-dimB+1:1])
     return sum
 end
-

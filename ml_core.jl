@@ -1,26 +1,14 @@
 include("./setup.jl")
 include("./functions.jl")
 include("./ann.jl")
-using LinearAlgebra
-
-mutable struct O
-
-    w::Array{Complex{Float64}, 2}
-    b::Array{Complex{Float64}, 1}
-end
-
-mutable struct OE
-
-    w::Array{Complex{Float64}, 2}
-    b::Array{Complex{Float64}, 1}
-end
+include("./params.jl")
 
 o  = O(zeros(ComplexF64, dimB, dimS), 
-       zeros(ComplexF64, dimB))
+       zeros(ComplexF64, dimS))
 oe = OE(zeros(ComplexF64, dimB, dimS), 
-        zeros(ComplexF64, dimB))
+        zeros(ComplexF64, dimS))
 
-function sampling(network, ϵ)
+function sampling(network::Network, ϵ::Float64)
 
     n = rand([1.0, 0.0],  dimB)
     s = rand([1.0, -1.0], dimS)
@@ -58,7 +46,7 @@ function sampling(network, ϵ)
     return error, energy, energyS, energyB, numberB
 end
 
-function updateparams(network, moment, e, ϵ, lr)
+function updateparams(network::Network, moment::Moment, e::Float64, ϵ::Float64, lr::Float64)
 
     Δw = 2.0 * (e - ϵ) * (oe.w - e * o.w) / iters_num
     Δb = 2.0 * (e - ϵ) * (oe.b - e * o.b) / iters_num
@@ -67,9 +55,9 @@ function updateparams(network, moment, e, ϵ, lr)
     moment.b   = 0.9 * moment.b - lr * Δb
     network.b += moment.b        
     setfield!(o,  :w, zeros(ComplexF64, dimB, dimS))
-    setfield!(o,  :b, zeros(ComplexF64, dimB))
+    setfield!(o,  :b, zeros(ComplexF64, dimS))
     setfield!(oe, :w, zeros(ComplexF64, dimB, dimS))
-    setfield!(oe, :b, zeros(ComplexF64, dimB))
+    setfield!(oe, :b, zeros(ComplexF64, dimS))
 end
 
 

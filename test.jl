@@ -1,6 +1,6 @@
 include("./setup.jl")
 include("./ann.jl")
-using .Const, .ANN, LinearAlgebra, Serialization,
+using LinearAlgebra, Serialization,
 Combinatorics, InteractiveUtils
 
 B = -[1 0 0 0

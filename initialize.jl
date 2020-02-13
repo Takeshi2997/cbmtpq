@@ -16,7 +16,7 @@ module Init
             weight[dimS*n+1:(n+1)*dimS, :] += 
             diagm(0 => ones(Complex{Float64}, dimS)) * (im * π / 2.0)
         end
-        bias = zeros(Complex{Float64}, dimB)
+        bias = zeros(Complex{Float64}, dimS)
    
         network = (weight, bias)
         # Write
