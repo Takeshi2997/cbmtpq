@@ -1,16 +1,13 @@
-module Params
-    include("./setup.jl")
-    using .Const, LinearAlgebra
+using LinearAlgebra
 
-    mutable struct Network
-    
-        w::Array{Complex{Float64}, 2}
-        b::Array{Complex{Float64}, 1}
-    end
+mutable struct Network
 
-    mutable struct Moment
+    w::Array{Complex{Float64}, 2}
+    b::Array{Complex{Float64}, 1}
+end
 
-        w::Array{Complex{Float64}, 2}
-        b::Array{Complex{Float64}, 1}
-    end
+mutable struct Moment
+
+    w::Array{Complex{Float64}, 2}
+    b::Array{Complex{Float64}, 1}
 end

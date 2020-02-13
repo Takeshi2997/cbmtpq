@@ -1,6 +1,6 @@
 module Init
     include("./setup.jl")
-    using .Const, LinearAlgebra, Serialization, ComplexValues
+    using LinearAlgebra, Serialization
 
     function network()
 
@@ -11,12 +11,12 @@ module Init
         filename = dirname * "/param_at_" * lpad(0, 3, "0") * ".dat"
 
         # Initialize weight, bias
-        weight  = -ones(Complex{Float64}, Const.dimB, Const.dimS) * 0.0001
-        for n in 1:Int64(Const.dimB/Const.dimS)-1
-            weight[Const.dimS*n+1:(n+1)*Const.dimS, :] += 
-            diagm(0 => ones(Complex{Float64}, Const.dimS)) * (im * π / 2.0)
+        weight  = -ones(Complex{Float64}, dimB, dimS) * 0.0001
+        for n in 1:Int64(dimB/dimS)-1
+            weight[dimS*n+1:(n+1)*dimS, :] += 
+            diagm(0 => ones(Complex{Float64}, dimS)) * (im * π / 2.0)
         end
-        bias = zeros(Complex{Float64}, Const.dimB)
+        bias = zeros(Complex{Float64}, dimB)
    
         network = (weight, bias)
         # Write

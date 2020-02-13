@@ -2,7 +2,7 @@ include("./setup.jl")
 include("./ml_core.jl")
 include("./params.jl")
 include("./ann.jl")
-using .Const, .MLcore, .Params, .ANN, LinearAlgebra, Serialization, InteractiveUtils
+using LinearAlgebra, Serialization, InteractiveUtils
 
 function main()
 
@@ -11,7 +11,7 @@ function main()
     f = open("error.txt", "w")
     for iϵ in 1:1 #Const.iϵmax
     
-        ϵ = (0.0 - 0.5 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dimB
+        ϵ = (0.0 - 0.5 * (iϵ - 1) / iϵmax) * t * dimB
 
         filename = dirname * "/param_at_" * lpad(iϵ, 3, "0") * ".dat"
         filenameinit = dirname * "/param_at_000.dat"
@@ -21,33 +21,32 @@ function main()
         energy  = 0.0
         energyS = 0.0
         energyB = 0.0
-        lr      = Const.lr
 
         # Define network
         params  = open(deserialize, filenameinit)
-        network = Params.Network(params...)
-        moment  = Params.Moment(zeros(ComplexF64, Const.dimB, Const.dimS), 
-                                zeros(ComplexF64, Const.dimB))
+        network = Network(params...)
+        moment  = Moment(zeros(ComplexF64, dimB, dimS), 
+                         zeros(ComplexF64, dimB))
 
         # Learning
-        for it in 1:Const.it_num
+        for it in 1:it_num
 
             #Calculate expected value
             error, energy, energyS, energyB, numberB =
-            MLcore.sampling(network, ϵ)
+            sampling(network, ϵ)
 
             #Update Parameter
-            MLcore.updateparam(network, moment, energy, ϵ, lr)
+            updateparams(network, moment, energy, ϵ, lr)
 
             write(f, string(it))
             write(f, "\t")
             write(f, string(error))
             write(f, "\t")
-            write(f, string(energyS / Const.dimS))
+            write(f, string(energyS / dimS))
             write(f, "\t")
-            write(f, string(energyB / Const.dimB))
+            write(f, string(energyB / dimB))
             write(f, "\t")
-            write(f, string(numberB / Const.dimB))
+            write(f, string(numberB / dimB))
             write(f, "\n")
         end
    
@@ -56,11 +55,11 @@ function main()
 #        write(f, "\t")
 #        write(f, string(error))
 #        write(f, "\t")
-#        write(f, string(energyB / Const.dimB))
+#        write(f, string(energyB / dimB))
 #        write(f, "\t")
-#        write(f, string(energyS / Const.dimS))
+#        write(f, string(energyS / dimS))
 #        write(f, "\t")
-#        write(f, string(numberB / Const.dimB))
+#        write(f, string(numberB / dimB))
 #        write(f, "\n")
 
         params = (network.w, network.b)
