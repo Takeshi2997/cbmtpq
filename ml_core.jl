@@ -3,9 +3,17 @@ include("./functions.jl")
 include("./ann.jl")
 include("./params.jl")
 
-o  = O(zeros(ComplexF64, dimB, dimS), 
-       zeros(ComplexF64, dimS))
+o  = O(zeros(Float64, dimB, dimS), 
+       zeros(Float64, dimS),
+       zeros(Float64, dimB, dimS), 
+       zeros(Float64, dimS))
 oe = OE(zeros(ComplexF64, dimB, dimS), 
+        zeros(ComplexF64, dimS), 
+        zeros(ComplexF64, dimB, dimS), 
+        zeros(ComplexF64, dimS), 
+        zeros(ComplexF64, dimB, dimS), 
+        zeros(ComplexF64, dimS), 
+        zeros(ComplexF64, dimB, dimS), 
         zeros(ComplexF64, dimS))
 
 function sampling(network::Network, ϵ::Float64)
@@ -34,7 +42,7 @@ function sampling(network::Network, ϵ::Float64)
         energyS   += eS
         energyB   += eB
         numberB   += sum(n)
-        backward(o, oe, n, s, e)
+        backward(o, oe, network, n, s, e)
         n = nnext
     end
     energy     = real(energy)  / iters_num
@@ -48,16 +56,26 @@ end
 
 function updateparams(network::Network, moment::Moment, e::Float64, ϵ::Float64, lr::Float64)
 
-    Δw = 2.0 * (e - ϵ) * (oe.w - e * o.w) / iters_num
-    Δb = 2.0 * (e - ϵ) * (oe.b - e * o.b) / iters_num
-    moment.w   = 0.9 * moment.w - lr * Δw
-    network.w += moment.w
-    moment.b   = 0.9 * moment.b - lr * Δb
-    network.b += moment.b        
-    setfield!(o,  :w, zeros(ComplexF64, dimB, dimS))
-    setfield!(o,  :b, zeros(ComplexF64, dimS))
-    setfield!(oe, :w, zeros(ComplexF64, dimB, dimS))
-    setfield!(oe, :b, zeros(ComplexF64, dimS))
+    Δwr = 2.0 * (e - ϵ) * 2.0 * (real.(oe.wr) - e * o.wr) / iters_num
+    Δbr = 2.0 * (e - ϵ) * 2.0 * (real.(oe.br) - e * o.br) / iters_num
+    Δwi = 2.0 * (e - ϵ) * 2.0 * imag.(oe.wr) / iters_num
+    Δbi = 2.0 * (e - ϵ) * 2.0 * imag.(oe.br) / iters_num
+ 
+    moment.wr   = 0.9 * moment.wr - lr * Δwr
+    network.wr += moment.wr
+    moment.br   = 0.9 * moment.br - lr * Δbr
+    network.br += moment.br
+    moment.wi   = 0.9 * moment.wi - lr * Δwi
+    network.wi += moment.wi
+    moment.bi   = 0.9 * moment.bi - lr * Δbi
+    network.bi += moment.bi
+ 
+    setfield!(o,  :wr, zeros(Float64, dimB, dimS))
+    setfield!(o,  :br, zeros(Float64, dimS))
+    setfield!(oe, :wr, zeros(ComplexF64, dimB, dimS))
+    setfield!(oe, :br, zeros(ComplexF64, dimS))
+    setfield!(oe, :wi, zeros(ComplexF64, dimB, dimS))
+    setfield!(oe, :bi, zeros(ComplexF64, dimS))
 end
 
 

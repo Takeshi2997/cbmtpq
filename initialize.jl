@@ -17,8 +17,8 @@ module Init
             diagm(0 => ones(Complex{Float64}, dimS)) * (im * π / 2.0)
         end
         bias = zeros(Complex{Float64}, dimS)
-   
-        network = (weight, bias)
+
+        network = (real.(weight), real.(bias), imag(weight), imag.(bias))
         # Write
         open(io -> serialize(io, network), filename, "w")
     end

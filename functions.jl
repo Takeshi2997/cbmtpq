@@ -21,14 +21,31 @@ function updateS(s::Array{Float64, 1}, n::Array{Float64, 1}, network::Network)
     return s
 end
 
+function flip(n::Array{Float64, 1}, iy::Integer)
+
+    nflip = copy(n)
+    nflip[iy] = 1.0 - nflip[iy]
+    return nflip
+end
+
+function flip2(n::Array{Float64, 1}, iy::Integer, ix::Integer)
+
+    nflip = copy(n)
+    nflip[iy] = 1.0 - nflip[iy]
+    nflip[ix] = 1.0 - nflip[ix]
+    return nflip
+end
+
 function updateB(n::Array{Float64, 1}, s::Array{Float64, 1}, network::Network)
     
-    z = 2.0 * real.(network.w * s)
-    rate = exp.((1.0 .- 2.0 * n) .* z)
+    z = forward(n, network)
     for iy in 1:dimB
-        if 1.0 > rate[iy]
+        nflip = flip(n, iy)
+        zflip = forward(nflip, network)
+        rate = exp(2.0 * real(dot(s, zflip .- z)))
+        if 1.0 > rate
             prob = rand(Float64)
-            if prob < rate[iy]
+            if prob < rate
                 n[iy] = 1.0 - n[iy]
             end
         else
@@ -60,12 +77,16 @@ function energyS_shift(inputs::Array{Float64, 1}, n::Array{Float64, 1}, network:
     return sum
 end
 
-function hamiltonianB_shift(n::Array{Float64, 1}, z::Array{ComplexF64, 1})
+function hamiltonianB_shift(n::Array{Float64, 1}, s::Array{Float64, 1}, 
+                            z::Array{ComplexF64, 1}, iy::Integer, network::Network)
 
     out = 0.0im
-    s = (1.0 / 2.0 .- n) * 2.0
-    if n[1] != n[2]
-        out += -exp(transpose(s) * z)
+    iynext = iy%dimB + 1
+    if n[iy] != n[iynext]
+        nflip = flip2(n, iy, iynext)
+        zflip = forward(nflip, network)
+        rate  = exp(dot(s, zflip .- z))
+        out  += -rate
     end
 
     return t * out + 1.0
@@ -73,13 +94,11 @@ end
 
 function energyB_shift(inputn::Array{Float64, 1}, s::Array{Float64, 1}, network::Network)
 
-    z = network.w * s
+    z = forward(inputn, network)
     sum = 0.0im
-    for ix in 1:dimB-1
-        sum += hamiltonianB_shift(inputn[ix:ix+1], z[ix:ix+1])
+    for iy in 1:dimB
+        sum += hamiltonianB_shift(inputn, s, z, iy, network)
     end
-    sum += 
-    hamiltonianB_shift(inputn[end:-dimB+1:1], 
-                       z[end:-dimB+1:1])
+
     return sum
 end

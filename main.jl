@@ -23,10 +23,7 @@ function main()
         energyB = 0.0
 
         # Define network
-        params  = open(deserialize, filenameinit)
-        network = Network(params...)
-        moment  = Moment(zeros(ComplexF64, dimB, dimS), 
-                         zeros(ComplexF64, dimS))
+        network = Network()
 
         # Learning
         for it in 1:it_num
@@ -62,7 +59,7 @@ function main()
 #        write(f, string(numberB / dimB))
 #        write(f, "\n")
 
-        params = (network.w, network.b)
+        params = (network.wr, network.br, network.wi, network.bi)
         open(io -> serialize(io, params), filename, "w")
     end
     close(f)
