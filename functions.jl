@@ -1,13 +1,12 @@
-include("./setup.jl")
 include("./params.jl")
 include("./ann.jl")
 using LinearAlgebra
 
-function updateS(s::Array{Float64, 1}, n::Array{Float64, 1}, network::Network)
+function updateS(s::Array{Float64, 1}, n::Array{Float64, 1})
 
-    z = 2.0 * real.(forward(n, network))
+    z = 2.0 * real.(forward(n))
     rate = exp.(-2.0 * s .* z)
-    for ix in 1:dimS
+    for ix in 1:Const.dimS
         if 1.0 > rate[ix]
             prob = rand(Float64)
             if prob < rate[ix]
@@ -36,12 +35,12 @@ function flip2(n::Array{Float64, 1}, iy::Integer, ix::Integer)
     return nflip
 end
 
-function updateB(n::Array{Float64, 1}, s::Array{Float64, 1}, network::Network)
+function updateB(n::Array{Float64, 1}, s::Array{Float64, 1})
     
-    z = forward(n, network)
-    for iy in 1:dimB
+    z = forward(n)
+    for iy in 1:Const.dimB
         nflip = flip(n, iy)
-        zflip = forward(nflip, network)
+        zflip = forward(nflip)
         rate = exp(2.0 * real(dot(s, zflip .- z)))
         if 1.0 > rate
             prob = rand(Float64)
@@ -63,14 +62,14 @@ function hamiltonianS_shift(s::Array{Float64, 1}, z::Array{ComplexF64, 1})
         out = -1.0 + 2.0 * exp(-2.0 * transpose(z) * s)
     end
 
-    return -J * out / 4.0 + 1.0 / 4.0
+    return -Const.J * out / 4.0 + 1.0 / 4.0
 end
 
-function energyS_shift(inputs::Array{Float64, 1}, n::Array{Float64, 1}, network::Network)
+function energyS_shift(inputs::Array{Float64, 1}, n::Array{Float64, 1})
 
-    z = forward(n, network)
+    z = forward(n)
     sum = 0.0 + 0.0im
-    for ix in 1:2:dimS-1
+    for ix in 1:2:Const.dimS-1
         sum += hamiltonianS_shift(inputs[ix:ix+1], z[ix:ix+1])
     end
 
@@ -78,26 +77,26 @@ function energyS_shift(inputs::Array{Float64, 1}, n::Array{Float64, 1}, network:
 end
 
 function hamiltonianB_shift(n::Array{Float64, 1}, s::Array{Float64, 1}, 
-                            z::Array{ComplexF64, 1}, iy::Integer, network::Network)
+                            z::Array{ComplexF64, 1}, iy::Integer)
 
     out = 0.0im
-    iynext = iy%dimB + 1
+    iynext = iy%Const.dimB + 1
     if n[iy] != n[iynext]
         nflip = flip2(n, iy, iynext)
-        zflip = forward(nflip, network)
+        zflip = forward(nflip)
         rate  = exp(dot(s, zflip .- z))
         out  += -rate
     end
 
-    return t * out + 1.0
+    return Const.t * out + 1.0
 end
 
-function energyB_shift(inputn::Array{Float64, 1}, s::Array{Float64, 1}, network::Network)
+function energyB_shift(inputn::Array{Float64, 1}, s::Array{Float64, 1})
 
-    z = forward(inputn, network)
+    z = forward(inputn)
     sum = 0.0im
-    for iy in 1:dimB
-        sum += hamiltonianB_shift(inputn, s, z, iy, network)
+    for iy in 1:Const.dimB
+        sum += hamiltonianB_shift(inputn, s, z, iy)
     end
 
     return sum

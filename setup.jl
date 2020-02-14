@@ -1,3 +1,5 @@
+module Const
+
 # System Size
 const dimS = 8
 const dimB = 64
@@ -14,9 +16,10 @@ const iϵmax = 20
 const num = 20000
 
 # Network Params
-const layers = [dimB, 16, dimS]
-const layers_num = ndims(layers)
+const layer = [dimB, 16, dimS]
+const layers_num = size(layer)[1]
 
 # Learning Rate
-const lr = 0.000001
+const lr = 0.0002
 
+end
