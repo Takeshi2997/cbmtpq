@@ -58,17 +58,11 @@ end
 
 opt = ADAM(Const.lr, (0.9, 0.999))
 
-function update(o::Array{DiffReal, 1}, oer::Array{DiffComplex, 1}, oei::Array{DiffComplex, 1},
-                e::Float64, ϵ::Float64)
+function update(ΔWreal::Array{Float64, 2}, Δbreal::Array{Float64, 1},
+                ΔWimag::Array{Float64, 2}, Δbimag::Array{Float64, 1}, i::Integer)
 
-    for i in 1:2
-        ΔWreal = 2.0 * (e - ϵ) * 2.0 * (real.(oer[i].W) - e * o[i].W) / Const.iters_num
-        Δbreal = 2.0 * (e - ϵ) * 2.0 * (real.(oer[i].b) - e * o[i].b) / Const.iters_num
-        ΔWimag = 2.0 * (e - ϵ) * 2.0 * imag.(oei[i].W) / Const.iters_num
-        Δbimag = 2.0 * (e - ϵ) * 2.0 * imag.(oei[i].b) / Const.iters_num
-        update!(opt, f[i].W, ΔWreal)
-        update!(opt, f[i].b, Δbreal)
-        update!(opt, g[i].W, ΔWimag)
-        update!(opt, g[i].b, Δbimag)
-    end
+    update!(opt, f[i].W, ΔWreal)
+    update!(opt, f[i].b, Δbreal)
+    update!(opt, g[i].W, ΔWimag)
+    update!(opt, g[i].b, Δbimag)
 end
