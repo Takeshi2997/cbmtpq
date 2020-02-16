@@ -1,10 +1,11 @@
-include("./params.jl")
+module Func
+include("./setup.jl")
 include("./ann.jl")
-using LinearAlgebra
+using .Const, .ANN, LinearAlgebra
 
 function updateS(s::Array{Float64, 1}, n::Array{Float64, 1})
 
-    z = 2.0 * real.(forward(n))
+    z = 2.0 * real.(ANN.forward(n))
     rate = exp.(-2.0 * s .* z)
     for ix in 1:Const.dimS
         if 1.0 > rate[ix]
@@ -37,10 +38,10 @@ end
 
 function updateB(n::Array{Float64, 1}, s::Array{Float64, 1})
     
-    z = forward(n)
+    z = ANN.forward(n)
     for iy in 1:Const.dimB
         nflip = flip(n, iy)
-        zflip = forward(nflip)
+        zflip = ANN.forward(nflip)
         rate = exp(2.0 * real(dot(s, zflip .- z)))
         if 1.0 > rate
             prob = rand(Float64)
@@ -67,7 +68,7 @@ end
 
 function energyS_shift(inputs::Array{Float64, 1}, n::Array{Float64, 1})
 
-    z = forward(n)
+    z = ANN.forward(n)
     sum = 0.0 + 0.0im
     for ix in 1:2:Const.dimS-1
         sum += hamiltonianS_shift(inputs[ix:ix+1], z[ix:ix+1])
@@ -83,7 +84,7 @@ function hamiltonianB_shift(n::Array{Float64, 1}, s::Array{Float64, 1},
     iynext = iy%Const.dimB + 1
     if n[iy] != n[iynext]
         nflip = flip2(n, iy, iynext)
-        zflip = forward(nflip)
+        zflip = ANN.forward(nflip)
         rate  = exp(dot(s, zflip .- z))
         out  += -rate
     end
@@ -93,11 +94,13 @@ end
 
 function energyB_shift(inputn::Array{Float64, 1}, s::Array{Float64, 1})
 
-    z = forward(inputn)
+    z = ANN.forward(inputn)
     sum = 0.0im
     for iy in 1:Const.dimB
         sum += hamiltonianB_shift(inputn, s, z, iy)
     end
 
     return sum
+end
+
 end

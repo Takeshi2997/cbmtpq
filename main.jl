@@ -1,23 +1,20 @@
 include("./setup.jl")
 include("./ml_core.jl")
-include("./ann.jl")
-using .Const, InteractiveUtils
+using .Const, .MLcore, InteractiveUtils
 
 function main()
 
     dirname = "./data"
+    rm(dirname, force=true, recursive=true)
+    mkdir(dirname)
 
-    f = open("error.txt", "w")
+    io = open("error.txt", "w")
     for iϵ in 1:1 #Const.iϵmax
     
         ϵ = (0.0 - 0.5 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dimB
 
         filenamereal = dirname * "/realparam_at_" * lpad(iϵ, 3, "0") * ".bson"
         filenameimag = dirname * "/imagparam_at_" * lpad(iϵ, 3, "0") * ".bson"
-        filenamerealinit = dirname * "/realparam_at_" * lpad(iϵ-1, 3, "0") * ".bson"
-        filenameimaginit = dirname * "/imagparam_at_" * lpad(iϵ-1, 3, "0") * ".bson"
-
-        load(filenamerealinit, filenameimaginit)
 
         # Initialize
         error   = 0.0
@@ -29,35 +26,35 @@ function main()
         for it in 1:Const.it_num
 
             # Calculate expected value
-            error, energy, energyS, energyB, numberB = sampling(ϵ)
+            error, energy, energyS, energyB, numberB = MLcore.sampling(ϵ)
 
-            write(f, string(it))
-            write(f, "\t")
-            write(f, string(error))
-            write(f, "\t")
-            write(f, string(energyS / Const.dimS))
-            write(f, "\t")
-            write(f, string(energyB / Const.dimB))
-            write(f, "\t")
-            write(f, string(numberB / Const.dimB))
-            write(f, "\n")
+            write(io, string(it))
+            write(io, "\t")
+            write(io, string(error))
+            write(io, "\t")
+            write(io, string(energyS / Const.dimS))
+            write(io, "\t")
+            write(io, string(energyB / Const.dimB))
+            write(io, "\t")
+            write(io, string(numberB / Const.dimB))
+            write(io, "\n")
         end
    
         # Write error
-#        write(f, string(iϵ))
-#        write(f, "\t")
-#        write(f, string(error))
-#        write(f, "\t")
-#        write(f, string(energyB / Const.dimB))
-#        write(f, "\t")
-#        write(f, string(energyS / Const.dimS))
-#        write(f, "\t")
-#        write(f, string(numberB / Const.dimB))
-#        write(f, "\n")
+#        write(io, string(iϵ))
+#        write(io, "\t")
+#        write(io, string(error))
+#        write(io, "\t")
+#        write(io, string(energyB / Const.dimB))
+#        write(io, "\t")
+#        write(io, string(energyS / Const.dimS))
+#        write(io, "\t")
+#        write(io, string(numberB / Const.dimB))
+#        write(io, "\n")
 
-        save(filenamereal, filenameimag)
+        MLcore.Func.ANN.save(filenamereal, filenameimag)
     end
-    close(f)
+    close(io)
 end
 
 @time main()

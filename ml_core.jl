@@ -1,6 +1,8 @@
+module MLcore
+include("./setup.jl")
 include("./functions.jl")
-include("./ann.jl")
-include("./params.jl")
+using .Const, .Func
+using Flux: Zygote
 
 function sampling(ϵ::Float64)
 
@@ -15,22 +17,32 @@ function sampling(ϵ::Float64)
 
     for i in 1:Const.burnintime
 
-        s = updateS(s, n)
-        n = updateB(n, s)
+        s = Func.updateS(s, n)
+        n = Func.updateB(n, s)
     end
 
     for i in 1:Const.iters_num
-        s     = updateS(s, n)
-        nnext = updateB(n, s)
+        s     = Func.updateS(s, n)
+        nnext = Func.updateB(n, s)
 
-        eS = energyS_shift(s, n)
-        eB = energyB_shift(n, s)
+        eS = Func.energyS_shift(s, n)
+        eB = Func.energyB_shift(n, s)
         e  = eS + eB
         energy    += e
         energyS   += eS
         energyB   += eB
         numberB   += sum(n)
-        backward(o, oer, oei, n, s, e)
+        realgs, imaggs = Func.ANN.setupbackward(n, s)
+        for i in 1:Const.layers_num
+            dwr, dbr, dwi, dbi = Func.ANN.backward(realgs, imaggs, i)
+            o[i].W   += dwr
+            o[i].b   += dbr
+            oer[i].W += dwr * e
+            oer[i].b += dbr * e
+            oei[i].W += dwi * e
+            oei[i].b += dbi * e
+        end
+
         n = nnext
     end
     energy   = real(energy)  / Const.iters_num
@@ -44,10 +56,22 @@ function sampling(ϵ::Float64)
         Δbreal = 2.0 * (energy - ϵ) * 2.0 * (real.(oer[i].b) - energy * o[i].b) / Const.iters_num
         ΔWimag = 2.0 * (energy - ϵ) * 2.0 * imag.(oei[i].W) / Const.iters_num
         Δbimag = 2.0 * (energy - ϵ) * 2.0 * imag.(oei[i].b) / Const.iters_num
-        update(ΔWreal, Δbreal, ΔWimag, Δbimag, i)
+        Func.ANN.update(ΔWreal, Δbreal, ΔWimag, Δbimag, i)
     end
 
     return error, energy, energyS, energyB, numberB
+end
+
+mutable struct DiffReal
+
+    W::Array{Float64, 2}
+    b::Array{Float64, 1}
+end
+
+mutable struct DiffComplex
+
+    W::Array{ComplexF64, 2}
+    b::Array{ComplexF64, 1}
 end
 
 function initO()
@@ -68,4 +92,4 @@ function initO()
     return o, oer, oei
 end
 
-
+end
