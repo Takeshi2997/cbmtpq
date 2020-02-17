@@ -7,13 +7,15 @@ using BSON: @save
 resσ(x::Float64)  = x + σ(x)
 
 reallayer1 = Dense(Const.layer[1], Const.layer[2], relu) |> f64
-reallayer2 = Dense(Const.layer[2], Const.layer[3], resσ) |> f64
-f = Chain(reallayer1, reallayer2)
+reallayer2 = Dense(Const.layer[2], Const.layer[3], relu) |> f64
+reallayer3 = Dense(Const.layer[3], Const.layer[4], resσ) |> f64
+f = Chain(reallayer1, reallayer2, reallayer3)
 realps = params(f)
 
 imaglayer1 = Dense(Const.layer[1], Const.layer[2], relu) |> f64
-imaglayer2 = Dense(Const.layer[2], Const.layer[3], resσ) |> f64
-g = Chain(imaglayer1, imaglayer2)
+imaglayer2 = Dense(Const.layer[2], Const.layer[3], relu) |> f64
+imaglayer3 = Dense(Const.layer[3], Const.layer[4], resσ) |> f64
+g = Chain(imaglayer1, imaglayer2, imaglayer3)
 imagps = params(g)
 
 function save(filename1, filename2)
