@@ -92,4 +92,43 @@ function initO()
     return o, oer, oei
 end
 
+function calculation_energy(filename1, filename2)
+
+    Func.ANN.load(filename1, filename2)
+ 
+    n = rand([1.0, 0.0],  Const.dimB)
+    s = rand([1.0, -1.0], Const.dimS)
+    energy  = 0.0
+    energyS = 0.0
+    energyB = 0.0
+    numberB = 0.0
+
+    for i in 1:Const.burnintime
+
+        s = Func.updateS(s, n)
+        n = Func.updateB(n, s)
+    end
+
+    for i in 1:Const.iters_num
+        s     = Func.updateS(s, n)
+        nnext = Func.updateB(n, s)
+
+        eS = Func.energyS_shift(s, n)
+        eB = Func.energyB_shift(n, s)
+        e  = eS + eB
+        energy    += e
+        energyS   += eS
+        energyB   += eB
+        numberB   += sum(n)
+
+        n = nnext
+    end
+    energy   = real(energy)  / Const.iters_num
+    energyS  = real(energyS) / Const.iters_num
+    energyB  = real(energyB) / Const.iters_num
+    numberB /= Const.iters_num
+
+    return error, energy, energyS, energyB, numberB
+end
+
 end

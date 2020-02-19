@@ -1,6 +1,6 @@
 include("./setup.jl")
 include("./ml_core.jl")
-using .Const, .MLcore, LinearAlgebra, Serialization
+using .Const, .MLcore, LinearAlgebra
 
 const state = collect(-Const.dimB+1:2:Const.dimB-1)
 
@@ -50,38 +50,10 @@ function translate(u)
     return 1 / t
 end
 
-function particle_number(β, μ)
-
-    x = cos.(π / Const.dimB * state) .+ μ / Const.t
-    ϵ = Const.t * abs.(x)
-    return -sum(tanh.(β * ϵ) .* sign.(x)) + Const.dimB / 2.0
-end
-
-function dparticle_number(β, μ)
-
-    ϵ = Const.t * abs.(cos.(π / Const.dimB * state) .+ μ / Const.t)
-    return -sum(1.0 ./ (cosh.(β * ϵ)).^2)
-end
-
-
-function chemical_potential(β, n)
-   
-    δ = 1.0
-    μ = 0.05
-    while δ > 0.00000001
-        numberB = particle_number(β, μ)
-        dnumber = dparticle_number(β, μ)
-        δ = abs(numberB / Const.dimB - n)
-        μ -= 0.01 * (numberB - n * Const.dimB) / dnumber
-    end
-    
-    return μ
-end
-
-function test2()
+function exact_energy()
 
     dirname = "./data"
-    f = open("energy_expected_value.txt", "w")
+    f = open("exact_energy.txt", "w")
     for iβ in 1:1000
         β = iβ * 0.01
    
@@ -106,10 +78,10 @@ function calculate()
     datamatrix = zeros(Float64, Const.iϵmax, 3)
     for iϵ in 1:Const.iϵmax
 
-        filename = dirname * "/param_at_" * lpad(iϵ, 3, "0") * ".dat"
-        params = open(deserialize, filename)
+        filenamereal = dirname * "/realparam_at_" * lpad(iϵ, 3, "0") * ".bson"
+        filenameimag = dirname * "/imagparam_at_" * lpad(iϵ, 3, "0") * ".bson"
 
-        energyS, energyB, numberB = MLcore.forward(params...)
+        energyS, energyB, numberB = MLcore.calculation_energy(filenamereal, filenameimag)
 
         β = translate(energyB - Const.dimB * Const.t)
         # Write energy
@@ -134,6 +106,6 @@ function calculate()
 end
 
 calculate()
-#test2()
+exact_energy()
 
 
