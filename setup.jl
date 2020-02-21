@@ -11,15 +11,15 @@ const J = 1.0
 # Repeat Number
 const burnintime = 100
 const iters_num = 200
-const it_num = 50000
+const it_num = 1000
 const iϵmax = 20
 const num = 20000
 
 # Network Params
-const layer = [dimB, 32, 32, dimS]
+const layer = [dimB, 32, 32, 32, dimS]
 const layers_num = size(layer)[1] - 1
 
 # Learning Rate
-const lr = 0.0005
+const lr = 0.0002
 
 end
