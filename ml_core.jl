@@ -1,17 +1,19 @@
 module MLcore
 include("./setup.jl")
 include("./functions.jl")
-using .Const, .Func
+using .Const, .Func, CuArrays
 using Flux: Zygote
 
-function sampling(ϵ::Float64)
+function sampling() end
 
-    n = rand([1.0, 0.0],  Const.dimB)
-    s = rand([1.0, -1.0], Const.dimS)
-    energy  = 0.0
-    energyS = 0.0
-    energyB = 0.0
-    numberB = 0.0
+CuArrays.@cufunc function sampling(ϵ::Float32)
+
+    n = rand([1.0f0, 0.0f0],  Const.dimB)
+    s = rand([1.0f0, -1.0f0], Const.dimS)
+    energy  = 0.0f0
+    energyS = 0.0f0
+    energyB = 0.0f0
+    numberB = 0.0f0
 
     o, oer, oei = initO()
 
@@ -52,10 +54,10 @@ function sampling(ϵ::Float64)
     error    = (energy - ϵ)^2
 
     for i in 1:Const.layers_num
-        ΔWreal = 2.0 * (energy - ϵ) * 2.0 * (real.(oer[i].W) - energy * o[i].W) / Const.iters_num
-        Δbreal = 2.0 * (energy - ϵ) * 2.0 * (real.(oer[i].b) - energy * o[i].b) / Const.iters_num
-        ΔWimag = 2.0 * (energy - ϵ) * 2.0 * imag.(oei[i].W) / Const.iters_num
-        Δbimag = 2.0 * (energy - ϵ) * 2.0 * imag.(oei[i].b) / Const.iters_num
+        ΔWreal = 2.0f0 * (energy - ϵ) * 2.0f0 * (real.(oer[i].W) - energy * o[i].W) / Const.iters_num
+        Δbreal = 2.0f0 * (energy - ϵ) * 2.0f0 * (real.(oer[i].b) - energy * o[i].b) / Const.iters_num
+        ΔWimag = 2.0f0 * (energy - ϵ) * 2.0f0 * imag.(oei[i].W) / Const.iters_num
+        Δbimag = 2.0f0 * (energy - ϵ) * 2.0f0 * imag.(oei[i].b) / Const.iters_num
         Func.ANN.update(ΔWreal, Δbreal, ΔWimag, Δbimag, i)
     end
 
@@ -64,44 +66,48 @@ end
 
 mutable struct DiffReal
 
-    W::Array{Float64, 2}
-    b::Array{Float64, 1}
+    W::CuArray{Float32, 2}
+    b::CuArray{Float32, 1}
 end
 
 mutable struct DiffComplex
 
-    W::Array{ComplexF64, 2}
-    b::Array{ComplexF64, 1}
+    W::CuArray{ComplexF32, 2}
+    b::CuArray{ComplexF32, 1}
 end
 
-function initO()
+function initO() end
+
+CuArrays.@cufunc function initO()
 
     o   = Array{DiffReal, 1}(undef, Const.layers_num)
     oer = Array{DiffComplex, 1}(undef, Const.layers_num)
     oei = Array{DiffComplex, 1}(undef, Const.layers_num)
 
     for i in 1:Const.layers_num
-        o[i]   = DiffReal(zeros(Float64, Const.layer[i+1], Const.layer[i]), 
-                          zeros(Float64, Const.layer[i+1]))
-        oer[i] = DiffComplex(zeros(ComplexF64, Const.layer[i+1], Const.layer[i]), 
-                             zeros(ComplexF64, Const.layer[i+1]))
-        oei[i] = DiffComplex(zeros(ComplexF64, Const.layer[i+1], Const.layer[i]), 
-                             zeros(ComplexF64, Const.layer[i+1]))
+        o[i]   = DiffReal(zeros(Float32, Const.layer[i+1], Const.layer[i]), 
+                          zeros(Float32, Const.layer[i+1]))
+        oer[i] = DiffComplex(zeros(ComplexF32, Const.layer[i+1], Const.layer[i]), 
+                             zeros(ComplexF32, Const.layer[i+1]))
+        oei[i] = DiffComplex(zeros(ComplexF32, Const.layer[i+1], Const.layer[i]), 
+                             zeros(ComplexF32, Const.layer[i+1]))
     end
 
     return o, oer, oei
 end
 
-function calculation_energy(filename1, filename2)
+function calculation_energy() end
+
+CuArrays.@cufunc function calculation_energy(filename1::String, filename2::String)
 
     Func.ANN.load(filename1, filename2)
  
-    n = rand([1.0, 0.0],  Const.dimB)
-    s = rand([1.0, -1.0], Const.dimS)
-    energy  = 0.0
-    energyS = 0.0
-    energyB = 0.0
-    numberB = 0.0
+    n = rand([1.0f0, 0.0f0],  Const.dimB)
+    s = rand([1.0f0, -1.0f0], Const.dimS)
+    energy  = 0.0f0
+    energyS = 0.0f0
+    energyB = 0.0f0
+    numberB = 0.0f0
 
     for i in 1:Const.burnintime
 

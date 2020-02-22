@@ -11,25 +11,25 @@ function main()
     io = open("error.txt", "w")
     for iϵ in 1:1 #Const.iϵmax
     
-        ϵ = (0.0 - 0.5 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dimB
+        ϵ = (0.0f0 - 0.5f0 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dimB
 
         filenamereal = dirname * "/realparam_at_" * lpad(iϵ, 3, "0") * ".bson"
         filenameimag = dirname * "/imagparam_at_" * lpad(iϵ, 3, "0") * ".bson"
 
         # Initialize
-        error   = 0.0
-        energy  = 0.0
-        energyS = 0.0
-        energyB = 0.0
-        numberB = 0.0
+        error   = 0.0f0
+        energy  = 0.0f0
+        energyS = 0.0f0
+        energyB = 0.0f0
+        numberB = 0.0f0
 
         # Learning
         for it in 1:Const.it_num
 
             # Calculate expected value
-            error, energy, energyS, energyB, numberB = MLcore.sampling(ϵ)
+            error, energy, energyS, energyB, numberB = MLcore.cusampling(ϵ)
 
-            if it%100 == 0
+            if it%10 == 0
                 write(io, string(it))
                 write(io, "\t")
                 write(io, string(error))

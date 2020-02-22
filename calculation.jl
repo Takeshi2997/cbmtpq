@@ -75,7 +75,7 @@ function calculate()
 
     dirname = "./data"
     f = open("energy_data.txt", "w")
-    datamatrix = zeros(Float64, Const.iϵmax, 3)
+    datamatrix = zeros(Float32, Const.iϵmax, 3)
     for iϵ in 1:Const.iϵmax
 
         filenamereal = dirname * "/realparam_at_" * lpad(iϵ, 3, "0") * ".bson"
