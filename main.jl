@@ -29,7 +29,7 @@ function main()
             # Calculate expected value
             error, energy, energyS, energyB, numberB = MLcore.sampling(ϵ)
 
-            if it%100 == 0
+            if it%10 == 0
                 write(io, string(it))
                 write(io, "\t")
                 write(io, string(error))
