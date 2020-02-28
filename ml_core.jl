@@ -128,7 +128,7 @@ function calculation_energy(filename1, filename2)
     energyB  = real(energyB) / Const.iters_num
     numberB /= Const.iters_num
 
-    return error, energy, energyS, energyB, numberB
+    return energyS, energyB, numberB
 end
 
 end
