@@ -3,6 +3,26 @@ include("./ml_core.jl")
 using .Const, .MLcore, InteractiveUtils
 using Flux
 
+function learning(io, ϵ)
+
+    for it in 1:Const.it_num
+
+        # Calculate expected value
+        error, energy, energyS, energyB, numberB = MLcore.sampling(ϵ)
+
+        write(io, string(it))
+        write(io, "\t")
+        write(io, string(error))
+        write(io, "\t")
+        write(io, string(energyS / Const.dimS))
+        write(io, "\t")
+        write(io, string(energyB / Const.dimB))
+        write(io, "\t")
+        write(io, string(numberB / Const.dimB))
+        write(io, "\n")
+    end
+end
+
 function main()
 
     dirname = "./data"
@@ -12,7 +32,7 @@ function main()
     io = open("error.txt", "w")
     for iϵ in 1:1 #Const.iϵmax
     
-        ϵ = (0.37 + 0.5 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dimB
+        ϵ = (0.4 + 0.5 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dimB
 
         filenamereal = dirname * "/realparam_at_" * lpad(iϵ, 3, "0") * ".bson"
         filenameimag = dirname * "/imagparam_at_" * lpad(iϵ, 3, "0") * ".bson"
@@ -25,23 +45,8 @@ function main()
         numberB = 0.0
 
         # Learning
-        for it in 1:Const.it_num
+        @time learning(io, ϵ) 
 
-            # Calculate expected value
-            error, energy, energyS, energyB, numberB = MLcore.sampling(ϵ)
-
-            write(io, string(it))
-            write(io, "\t")
-            write(io, string(error))
-            write(io, "\t")
-            write(io, string(energyS / Const.dimS))
-            write(io, "\t")
-            write(io, string(energyB / Const.dimB))
-            write(io, "\t")
-            write(io, string(numberB / Const.dimB))
-            write(io, "\n")
-        end
-   
         # Write error
 #        write(io, string(iϵ))
 #        write(io, "\t")
@@ -60,5 +65,5 @@ function main()
     close(io)
 end
 
-@time main()
+main()
 
