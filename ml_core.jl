@@ -109,7 +109,7 @@ function calculation_energy(filename1, filename2)
         n = Func.updateB(n, s)
     end
 
-    for i in 1:Const.iters_num
+    for i in 1:Const.num
         s     = Func.updateS(s, n)
         nnext = Func.updateB(n, s)
 
@@ -123,10 +123,10 @@ function calculation_energy(filename1, filename2)
 
         n = nnext
     end
-    energy   = real(energy)  / Const.iters_num
-    energyS  = real(energyS) / Const.iters_num
-    energyB  = real(energyB) / Const.iters_num
-    numberB /= Const.iters_num
+    energy   = real(energy)  / Const.num
+    energyS  = real(energyS) / Const.num
+    energyB  = real(energyB) / Const.num
+    numberB /= Const.num
 
     return energyS, energyB, numberB
 end
