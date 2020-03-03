@@ -1,7 +1,7 @@
 include("./setup.jl")
 include("./ml_core.jl")
 using .Const, .MLcore, LinearAlgebra
-using Flux, NNlib, Serialization
+using Flux, Serialization
 
 const state = collect(-Const.dimB+1:2:Const.dimB-1)
 

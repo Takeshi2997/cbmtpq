@@ -1,6 +1,7 @@
 include("./setup.jl")
 include("./ml_core.jl")
 using .Const, .MLcore, InteractiveUtils
+using Flux
 
 function main()
 
@@ -11,7 +12,7 @@ function main()
     io = open("error.txt", "w")
     for iϵ in 1:1 #Const.iϵmax
     
-        ϵ = (0.0 - 0.5 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dimB
+        ϵ = (0.37 + 0.5 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dimB
 
         filenamereal = dirname * "/realparam_at_" * lpad(iϵ, 3, "0") * ".bson"
         filenameimag = dirname * "/imagparam_at_" * lpad(iϵ, 3, "0") * ".bson"
@@ -29,18 +30,16 @@ function main()
             # Calculate expected value
             error, energy, energyS, energyB, numberB = MLcore.sampling(ϵ)
 
-            if it%100 == 0
-                write(io, string(it))
-                write(io, "\t")
-                write(io, string(error))
-                write(io, "\t")
-                write(io, string(energyS / Const.dimS))
-                write(io, "\t")
-                write(io, string(energyB / Const.dimB))
-                write(io, "\t")
-                write(io, string(numberB / Const.dimB))
-                write(io, "\n")
-            end
+            write(io, string(it))
+            write(io, "\t")
+            write(io, string(error))
+            write(io, "\t")
+            write(io, string(energyS / Const.dimS))
+            write(io, "\t")
+            write(io, string(energyB / Const.dimB))
+            write(io, "\t")
+            write(io, string(numberB / Const.dimB))
+            write(io, "\n")
         end
    
         # Write error
@@ -56,6 +55,7 @@ function main()
 #        write(io, "\n")
 
         MLcore.Func.ANN.save(filenamereal, filenameimag)
+        MLcore.Func.ANN.load(filenamereal, filenameimag)
     end
     close(io)
 end
