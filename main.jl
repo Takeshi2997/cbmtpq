@@ -30,9 +30,9 @@ function main()
     mkdir(dirname)
 
     g = open("error.txt", "w")
-    for iϵ in 1:1 #Const.iϵmax
+    for iϵ in 1:Const.iϵmax
     
-        ϵ = (1.0 - 0.5 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dimB
+        ϵ = (1.0 - 0.6 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dimB
 
         filenamereal = dirname * "/realparam_at_" * lpad(iϵ, 3, "0") * ".bson"
         filenameimag = dirname * "/imagparam_at_" * lpad(iϵ, 3, "0") * ".bson"
