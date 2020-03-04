@@ -4,7 +4,7 @@ include("./functions.jl")
 using .Const, .Func
 using Flux: Zygote
 
-function sampling(ϵ::Float64)
+function sampling(ϵ::Float64, lr::Float64)
 
     n = rand([1.0, 0.0],  Const.dimB)
     s = rand([1.0, -1.0], Const.dimS)
@@ -56,7 +56,7 @@ function sampling(ϵ::Float64)
         Δbreal = 2.0 * (energy - ϵ) * 2.0 * (real.(oer[i].b) - energy * o[i].b) / Const.iters_num
         ΔWimag = 2.0 * (energy - ϵ) * 2.0 * imag.(oei[i].W) / Const.iters_num
         Δbimag = 2.0 * (energy - ϵ) * 2.0 * imag.(oei[i].b) / Const.iters_num
-        Func.ANN.update(ΔWreal, Δbreal, ΔWimag, Δbimag, i)
+        Func.ANN.update(ΔWreal, Δbreal, ΔWimag, Δbimag, i, lr)
     end
 
     return error, energy, energyS, energyB, numberB

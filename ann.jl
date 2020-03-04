@@ -4,8 +4,6 @@ using .Const, LinearAlgebra, Flux
 using Flux.Optimise: update!
 using BSON: @save, @load
 
-resσ(x::Float64)  = x + σ(x)
-
 reallayer1 = Dense(Const.layer[1], Const.layer[2], relu) |> f64
 reallayer2 = Dense(Const.layer[2], Const.layer[3], relu) |> f64
 reallayer3 = Dense(Const.layer[3], Const.layer[4]) |> f64
@@ -51,15 +49,15 @@ function backward(realgs, imaggs, i::Integer)
     imaggs[g[i].W], imaggs[g[i].b]
 end
 
-opt = ADAM(Const.lr, (0.9, 0.999))
+opt(lr::Float64) = ADAM(lr, (0.9, 0.999))
 
 function update(ΔWreal::Array{Float64, 2}, Δbreal::Array{Float64, 1},
-                ΔWimag::Array{Float64, 2}, Δbimag::Array{Float64, 1}, i::Integer)
+                ΔWimag::Array{Float64, 2}, Δbimag::Array{Float64, 1}, i::Integer, lr::Float64)
 
-    update!(opt, f[i].W, ΔWreal)
-    update!(opt, f[i].b, Δbreal)
-    update!(opt, g[i].W, ΔWimag)
-    update!(opt, g[i].b, Δbimag)
+    update!(opt(lr), f[i].W, ΔWreal)
+    update!(opt(lr), f[i].b, Δbreal)
+    update!(opt(lr), g[i].W, ΔWimag)
+    update!(opt(lr), g[i].b, Δbimag)
 end
 
 end

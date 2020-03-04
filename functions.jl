@@ -38,8 +38,8 @@ end
 
 function updateB(n::Array{Float64, 1}, s::Array{Float64, 1})
     
-    z = ANN.forward(n)
     for iy in 1:Const.dimB
+        z = ANN.forward(n)
         nflip = flip(n, iy)
         zflip = ANN.forward(nflip)
         rate = exp(2.0 * real(dot(s, zflip .- z)))

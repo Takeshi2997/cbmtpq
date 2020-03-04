@@ -20,6 +20,6 @@ const layer = [dimB, 96, 96, dimS]
 const layers_num = size(layer)[1] - 1
 
 # Learning Rate
-const lr = 0.005
+const lr = 0.001
 
 end

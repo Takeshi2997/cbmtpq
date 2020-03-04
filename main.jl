@@ -3,12 +3,12 @@ include("./ml_core.jl")
 using .Const, .MLcore, InteractiveUtils
 using Flux
 
-function learning(io, ϵ)
+function learning(io, ϵ::Float64, lr::Float64)
 
     for it in 1:Const.it_num
 
         # Calculate expected value
-        error, energy, energyS, energyB, numberB = MLcore.sampling(ϵ)
+        error, energy, energyS, energyB, numberB = MLcore.sampling(ϵ, lr)
 
         write(io, string(it))
         write(io, "\t")
@@ -30,9 +30,9 @@ function main()
     mkdir(dirname)
 
     g = open("error.txt", "w")
-    for iϵ in 1:Const.iϵmax
+    for iϵ in 1:1 #Const.iϵmax
     
-        ϵ = (0.37 + 0.5 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dimB
+        ϵ = (1.0 - 0.5 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dimB
 
         filenamereal = dirname * "/realparam_at_" * lpad(iϵ, 3, "0") * ".bson"
         filenameimag = dirname * "/imagparam_at_" * lpad(iϵ, 3, "0") * ".bson"
@@ -43,11 +43,16 @@ function main()
         energyS = 0.0
         energyB = 0.0
         numberB = 0.0
+        lr = Const.lr
+
+        if iϵ == 1
+            lr = 0.001
+        end
 
         # Learning
         filename = "./error" * lpad(iϵ, 3, "0") * ".txt"
         f = open(filename, "w")
-        @time learning(f, ϵ) 
+        @time learning(f, ϵ, lr) 
         close(f)
 
         # Write error
