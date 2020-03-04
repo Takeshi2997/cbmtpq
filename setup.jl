@@ -1,7 +1,7 @@
 module Const
 
 # System Size
-const dimS = 8
+const dimS = 2
 const dimB = 64
 
 # System Param

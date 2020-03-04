@@ -1,6 +1,27 @@
 include("./setup.jl")
 include("./ml_core.jl")
 using .Const, .MLcore, InteractiveUtils
+using Flux
+
+function learning(io, ϵ::Float64)
+
+    for it in 1:Const.it_num
+
+        # Calculate expected value
+        error, energy, energyS, energyB, numberB = MLcore.sampling(ϵ)
+
+        write(io, string(it))
+        write(io, "\t")
+        write(io, string(error))
+        write(io, "\t")
+        write(io, string(energyS / Const.dimS))
+        write(io, "\t")
+        write(io, string(energyB / Const.dimB))
+        write(io, "\t")
+        write(io, string(numberB / Const.dimB))
+        write(io, "\n")
+    end
+end
 
 function main()
 
@@ -8,10 +29,10 @@ function main()
     rm(dirname, force=true, recursive=true)
     mkdir(dirname)
 
-    io = open("error.txt", "w")
+    g = open("error.txt", "w")
     for iϵ in 1:1 #Const.iϵmax
     
-        ϵ = (0.0 - 0.5 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dimB
+        ϵ = (1.0 - 0.5 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dimB
 
         filenamereal = dirname * "/realparam_at_" * lpad(iϵ, 3, "0") * ".bson"
         filenameimag = dirname * "/imagparam_at_" * lpad(iϵ, 3, "0") * ".bson"
@@ -24,41 +45,28 @@ function main()
         numberB = 0.0
 
         # Learning
-        for it in 1:Const.it_num
+        filename = "./error" * lpad(iϵ, 3, "0") * ".txt"
+        f = open(filename, "w")
+        @time learning(f, ϵ)
+        close(f)
 
-            # Calculate expected value
-            error, energy, energyS, energyB, numberB = MLcore.sampling(ϵ)
-
-            if it%10 == 0
-                write(io, string(it))
-                write(io, "\t")
-                write(io, string(error))
-                write(io, "\t")
-                write(io, string(energyS / Const.dimS))
-                write(io, "\t")
-                write(io, string(energyB / Const.dimB))
-                write(io, "\t")
-                write(io, string(numberB / Const.dimB))
-                write(io, "\n")
-            end
-        end
-   
         # Write error
-#        write(io, string(iϵ))
-#        write(io, "\t")
-#        write(io, string(error))
-#        write(io, "\t")
-#        write(io, string(energyB / Const.dimB))
-#        write(io, "\t")
-#        write(io, string(energyS / Const.dimS))
-#        write(io, "\t")
-#        write(io, string(numberB / Const.dimB))
-#        write(io, "\n")
+        write(g, string(iϵ))
+        write(g, "\t")
+        write(g, string(error))
+        write(g, "\t")
+        write(g, string(energyB / Const.dimB))
+        write(g, "\t")
+        write(g, string(energyS / Const.dimS))
+        write(g, "\t")
+        write(g, string(numberB / Const.dimB))
+        write(g, "\n")
 
         MLcore.Func.ANN.save(filenamereal, filenameimag)
+        MLcore.Func.ANN.load(filenamereal, filenameimag)
     end
-    close(io)
+    close(g)
 end
 
-@time main()
+main()
 
