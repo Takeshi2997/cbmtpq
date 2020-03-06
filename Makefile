@@ -15,4 +15,4 @@ init: $(BASE) $(INITS)
 
 clean:
 	-rm -f *.txt *.png *.dat
-	-rm -rf data
+	-rm -rf data error
