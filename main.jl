@@ -45,10 +45,6 @@ function main()
         numberB = 0.0
         lr = Const.lr
 
-        if iϵ == 1
-            lr = 0.001
-        end
-
         # Learning
         filename = "./error" * lpad(iϵ, 3, "0") * ".txt"
         f = open(filename, "w")
