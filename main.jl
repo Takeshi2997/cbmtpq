@@ -2,6 +2,7 @@ include("./setup.jl")
 include("./ml_core.jl")
 using .Const, .MLcore, InteractiveUtils
 using Flux
+using BSON
 
 function learning(io, ϵ::Float64, lr::Float64)
 
@@ -29,13 +30,16 @@ function main()
     rm(dirname, force=true, recursive=true)
     mkdir(dirname)
 
+    dirnameerror = "./error"
+    rm(dirnameerror, force=true, recursive=true)
+    mkdir(dirnameerror)
+
     g = open("error.txt", "w")
     for iϵ in 1:Const.iϵmax
     
         ϵ = (1.0 - 0.6 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dimB
 
-        filenamereal = dirname * "/realparam_at_" * lpad(iϵ, 3, "0") * ".bson"
-        filenameimag = dirname * "/imagparam_at_" * lpad(iϵ, 3, "0") * ".bson"
+        filenameparams = dirname * "/params_at_" * lpad(iϵ, 3, "0") * ".bson"
 
         # Initialize
         error   = 0.0
@@ -46,7 +50,7 @@ function main()
         lr = Const.lr
 
         # Learning
-        filename = "./error" * lpad(iϵ, 3, "0") * ".txt"
+        filename = dirnameerror * "/error" * lpad(iϵ, 3, "0") * ".txt"
         f = open(filename, "w")
         @time learning(f, ϵ, lr) 
         close(f)
@@ -63,8 +67,10 @@ function main()
         write(g, string(numberB / Const.dimB))
         write(g, "\n")
 
-        MLcore.Func.ANN.save(filenamereal, filenameimag)
-        MLcore.Func.ANN.load(filenamereal, filenameimag)
+        MLcore.Func.ANN.save(filenameparams)
+        network = BSON.load(filenameparams)
+        setfield!(MLcore.Func.ANN.network, :f, network[:f])
+        setfield!(MLcore.Func.ANN.network, :g, network[:g])
     end
     close(g)
 end

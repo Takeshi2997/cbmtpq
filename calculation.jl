@@ -2,6 +2,7 @@ include("./setup.jl")
 include("./ml_core.jl")
 using .Const, .MLcore, LinearAlgebra
 using Flux, Serialization
+using BSON
 
 const state = collect(-Const.dimB+1:2:Const.dimB-1)
 
@@ -79,10 +80,12 @@ function calculate()
     datamatrix = zeros(Float64, Const.iϵmax, 3)
     for iϵ in 1:Const.iϵmax
 
-        filenamereal = dirname * "/realparam_at_" * lpad(iϵ, 3, "0") * ".bson"
-        filenameimag = dirname * "/imagparam_at_" * lpad(iϵ, 3, "0") * ".bson"
+        filenameparams = dirname * "/params_at_" * lpad(iϵ, 3, "0") * ".bson"
 
-        energyS, energyB, numberB = MLcore.calculation_energy(filenamereal, filenameimag)
+        network = BSON.load(filenameparams)
+        setfield!(MLcore.Func.ANN.network, :f, network[:f])
+        setfield!(MLcore.Func.ANN.network, :g, network[:g])
+        energyS, energyB, numberB = MLcore.calculation_energy()
 
         β = translate(energyB - Const.dimB * Const.t)
         # Write energy
@@ -92,9 +95,9 @@ function calculate()
         write(f, "\t")
         write(f, string(energyS / Const.dimS))
         write(f, "\t")
-        write(f, string(-3.0 * Const.J / 8.0 * sinh(Const.J * β / 2.0) / 
-                        (exp(Const.J * β / 2.0) + cosh(Const.J * β / 2.0)) + 
-                       0.125))
+        write(f, string(-3.0 * Const.J / 4.0 * sinh(Const.J * β / 2.0) / 
+                       (exp(Const.J * β / 2.0) + cosh(Const.J * β / 2.0)) + 
+                      0.25))
         write(f, "\t")
         write(f, string(numberB / Const.dimB))
         write(f, "\n")

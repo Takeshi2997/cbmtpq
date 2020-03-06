@@ -2,7 +2,7 @@ module ANN
 include("./setup.jl")
 using .Const, LinearAlgebra, Flux
 using Flux.Optimise: update!
-using BSON: @save, @load
+using BSON: @save
 
 reallayer1 = Dense(Const.layer[1], Const.layer[2], relu) |> f64
 reallayer2 = Dense(Const.layer[2], Const.layer[3], relu) |> f64
@@ -18,21 +18,22 @@ imaglayer4 = Dense(Const.layer[4], Const.layer[5]) |> f64
 g = Chain(imaglayer1, imaglayer2, imaglayer3, imaglayer4)
 imagps = params(g)
 
-function save(filename1, filename2)
+mutable struct Network
 
-    @save filename1 f
-    @save filename2 g
+    f::Any
+    g::Any
 end
 
-function load(filename1, filename2)
+network = Network(f, g)
 
-    @load filename1 f
-    @load filename2 g
+function save(filename)
+
+    @save filename f g
 end
 
 function forward(n::Array{Float64, 1})
 
-    return f(n) .+ im * g(n)
+    return network.f(n) .+ im * network.g(n)
 end
 
 realloss(s, n) = dot(s, f(n))

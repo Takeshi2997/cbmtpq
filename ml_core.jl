@@ -3,6 +3,7 @@ include("./setup.jl")
 include("./functions.jl")
 using .Const, .Func
 using Flux: Zygote
+using BSON: @load
 
 function sampling(ϵ::Float64, lr::Float64)
 
@@ -92,10 +93,8 @@ function initO()
     return o, oer, oei
 end
 
-function calculation_energy(filename1, filename2)
+function calculation_energy()
 
-    Func.ANN.load(filename1, filename2)
- 
     n = rand([1.0, 0.0],  Const.dimB)
     s = rand([1.0, -1.0], Const.dimS)
     energy  = 0.0
