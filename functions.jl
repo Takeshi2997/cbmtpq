@@ -58,12 +58,12 @@ end
 
 function hamiltonianS_shift(s::Array{Float64, 1}, z::Array{ComplexF64, 1})
 
-    out = 1.0
+    out = 0.0im
     if s[1] != s[2]
-        out = -1.0 + 2.0 * exp(-2.0 * transpose(z) * s)
+        out += 1.0 - exp(-2.0 * transpose(z) * s)
     end
 
-    return -Const.J * out / 4.0 + 1.0 / 4.0
+    return Const.J * out / 4.0
 end
 
 function energyS_shift(inputs::Array{Float64, 1}, n::Array{Float64, 1})

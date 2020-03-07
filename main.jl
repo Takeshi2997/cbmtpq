@@ -37,7 +37,7 @@ function main()
     g = open("error.txt", "w")
     for iϵ in 1:Const.iϵmax
     
-        ϵ = (1.0 - 0.6 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dimB
+        ϵ = (0.9 - 0.5 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dimB
 
         filenameparams = dirname * "/params_at_" * lpad(iϵ, 3, "0") * ".bson"
 
@@ -68,9 +68,6 @@ function main()
         write(g, "\n")
 
         MLcore.Func.ANN.save(filenameparams)
-        network = BSON.load(filenameparams)
-        setfield!(MLcore.Func.ANN.network, :f, network[:f])
-        setfield!(MLcore.Func.ANN.network, :g, network[:g])
     end
     close(g)
 end

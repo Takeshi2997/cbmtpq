@@ -1,6 +1,7 @@
 include("./setup.jl")
 include("./ml_core.jl")
-using .Const, .MLcore, LinearAlgebra
+using .Const, .MLcore
+using LinearAlgebra
 using Flux, Serialization
 using BSON
 
@@ -67,7 +68,7 @@ function exact_energy()
         write(f, string(ϵ + 1.0))
         write(f, "\t")
         write(f, string(-3.0 * Const.J / 8.0 * sinh(Const.J * β / 2.0) / 
-                        (exp(Const.J * β / 2.0) + cosh(Const.J * β / 2.0)) + 0.125))
+                       (exp(Const.J * β / 2.0) + cosh(Const.J * β / 2.0)) + 0.125))
         write(f, "\n")
     end
     close(f)
@@ -95,9 +96,9 @@ function calculate()
         write(f, "\t")
         write(f, string(energyS / Const.dimS))
         write(f, "\t")
-        write(f, string(-3.0 * Const.J / 4.0 * sinh(Const.J * β / 2.0) / 
+        write(f, string(-3.0 * Const.J / 8.0 * sinh(Const.J * β / 2.0) / 
                        (exp(Const.J * β / 2.0) + cosh(Const.J * β / 2.0)) + 
-                      0.25))
+                      0.125))
         write(f, "\t")
         write(f, string(numberB / Const.dimB))
         write(f, "\n")
