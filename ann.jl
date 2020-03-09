@@ -6,16 +6,14 @@ using BSON: @save
 
 reallayer1 = Dense(Const.layer[1], Const.layer[2], relu) |> f64
 reallayer2 = Dense(Const.layer[2], Const.layer[3], relu) |> f64
-reallayer3 = Dense(Const.layer[3], Const.layer[4], relu) |> f64
-reallayer4 = Dense(Const.layer[4], Const.layer[5]) |> f64
-f = Chain(reallayer1, reallayer2, reallayer3, reallayer4)
+reallayer3 = Dense(Const.layer[3], Const.layer[4]) |> f64
+f = Chain(reallayer1, reallayer2, reallayer3)
 realps = params(f)
 
 imaglayer1 = Dense(Const.layer[1], Const.layer[2], relu) |> f64
 imaglayer2 = Dense(Const.layer[2], Const.layer[3], relu) |> f64
-imaglayer3 = Dense(Const.layer[3], Const.layer[4], relu) |> f64
-imaglayer4 = Dense(Const.layer[4], Const.layer[5]) |> f64
-g = Chain(imaglayer1, imaglayer2, imaglayer3, imaglayer4)
+imaglayer3 = Dense(Const.layer[3], Const.layer[4]) |> f64
+g = Chain(imaglayer1, imaglayer2, imaglayer3)
 imagps = params(g)
 
 mutable struct Network

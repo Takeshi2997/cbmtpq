@@ -35,7 +35,7 @@ function main()
     mkdir(dirnameerror)
 
     g = open("error.txt", "w")
-    for iϵ in 1:Const.iϵmax
+    for iϵ in 1:2 # Const.iϵmax
     
         ϵ = (0.9 - 0.5 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dimB
 
