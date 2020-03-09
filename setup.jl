@@ -1,7 +1,7 @@
 module Const
 
 # System Size
-const dimS = 16
+const dimS = 8
 const dimB = 48
 
 # System Param
@@ -20,6 +20,6 @@ const layer = [dimB, 144, 144, dimS]
 const layers_num = size(layer)[1] - 1
 
 # Learning Rate
-const lr = 0.0001
+const lr = 0.00005
 
 end
