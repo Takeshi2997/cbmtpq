@@ -2,7 +2,7 @@ module ANN
 include("./setup.jl")
 using .Const, LinearAlgebra, Flux
 using Flux.Optimise: update!
-using BSON: @save, @load
+using BSON: @save
 
 reallayer1 = Dense(Const.layer[1], Const.layer[2], relu) |> f64
 reallayer2 = Dense(Const.layer[2], Const.layer[3], relu) |> f64
@@ -16,21 +16,22 @@ imaglayer3 = Dense(Const.layer[3], Const.layer[4]) |> f64
 g = Chain(imaglayer1, imaglayer2, imaglayer3)
 imagps = params(g)
 
-function save(filename1, filename2)
+mutable struct Network
 
-    @save filename1 f
-    @save filename2 g
+    f::Any
+    g::Any
 end
 
-function load(filename1, filename2)
+network = Network(f, g)
 
-    @load filename1 f
-    @load filename2 g
+function save(filename)
+
+    @save filename f g
 end
 
-function forward(s::Array{Float64, 1})
+function forward(n::Array{Float64, 1})
 
-    return f(s) .+ im * g(s)
+    return network.f(n) .+ im * network.g(n)
 end
 
 realloss(s, n) = dot(n, f(s))
@@ -49,15 +50,15 @@ function backward(realgs, imaggs, i::Integer)
     imaggs[g[i].W], imaggs[g[i].b]
 end
 
-opt = ADAM(Const.lr, (0.9, 0.999))
+opt(lr::Float64) = ADAM(lr, (0.9, 0.999))
 
 function update(ΔWreal::Array{Float64, 2}, Δbreal::Array{Float64, 1},
-                ΔWimag::Array{Float64, 2}, Δbimag::Array{Float64, 1}, i::Integer)
+                ΔWimag::Array{Float64, 2}, Δbimag::Array{Float64, 1}, i::Integer, lr::Float64)
 
-    update!(opt, f[i].W, ΔWreal)
-    update!(opt, f[i].b, Δbreal)
-    update!(opt, g[i].W, ΔWimag)
-    update!(opt, g[i].b, Δbimag)
+    update!(opt(lr), f[i].W, ΔWreal)
+    update!(opt(lr), f[i].b, Δbreal)
+    update!(opt(lr), g[i].W, ΔWimag)
+    update!(opt(lr), g[i].b, Δbimag)
 end
 
 end

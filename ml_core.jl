@@ -3,8 +3,9 @@ include("./setup.jl")
 include("./functions.jl")
 using .Const, .Func
 using Flux: Zygote
+using BSON: @load
 
-function sampling(ϵ::Float64)
+function sampling(ϵ::Float64, lr::Float64)
 
     n = rand([1.0, 0.0],  Const.dimB)
     s = rand([1.0, -1.0], Const.dimS)
@@ -56,7 +57,7 @@ function sampling(ϵ::Float64)
         Δbreal = 2.0 * (energy - ϵ) * 2.0 * (real.(oer[i].b) - energy * o[i].b) / Const.iters_num
         ΔWimag = 2.0 * (energy - ϵ) * 2.0 * imag.(oei[i].W) / Const.iters_num
         Δbimag = 2.0 * (energy - ϵ) * 2.0 * imag.(oei[i].b) / Const.iters_num
-        Func.ANN.update(ΔWreal, Δbreal, ΔWimag, Δbimag, i)
+        Func.ANN.update(ΔWreal, Δbreal, ΔWimag, Δbimag, i, lr)
     end
 
     return error, energy, energyS, energyB, numberB
@@ -92,10 +93,8 @@ function initO()
     return o, oer, oei
 end
 
-function calculation_energy(filename1, filename2)
+function calculation_energy()
 
-    Func.ANN.load(filename1, filename2)
- 
     n = rand([1.0, 0.0],  Const.dimB)
     s = rand([1.0, -1.0], Const.dimS)
     energy  = 0.0
@@ -109,7 +108,7 @@ function calculation_energy(filename1, filename2)
         n = Func.updateB(n, s)
     end
 
-    for i in 1:Const.iters_num
+    for i in 1:Const.num
         s     = Func.updateS(s, n)
         nnext = Func.updateB(n, s)
 
@@ -123,12 +122,12 @@ function calculation_energy(filename1, filename2)
 
         n = nnext
     end
-    energy   = real(energy)  / Const.iters_num
-    energyS  = real(energyS) / Const.iters_num
-    energyB  = real(energyB) / Const.iters_num
-    numberB /= Const.iters_num
+    energy   = real(energy)  / Const.num
+    energyS  = real(energyS) / Const.num
+    energyB  = real(energyB) / Const.num
+    numberB /= Const.num
 
-    return error, energy, energyS, energyB, numberB
+    return energyS, energyB, numberB
 end
 
 end

@@ -59,16 +59,16 @@ end
 function hamiltonianS_shift(s::Array{Float64, 1}, n::Array{Float64, 1}, 
                             z::Array{ComplexF64, 1}, ix::Integer)
 
-    out = 1.0 + 0.0im
+    out = 0.0im
     ixnext = ix%Const.dimS + 1
     if s[ix] != s[ixnext]
         sflip = flip2(s, ix, ixnext)
         zflip = ANN.forward(sflip)
         rate  = exp(dot(n, zflip .- z))
-        out   = -1.0 + 2.0 * rate
+        out   = 1.0 - 2.0 * rate
     end
  
-    return -Const.J * out / 4.0 + 1.0 / 4.0
+    return Const.J * out / 4.0
 end
 
 function energyS_shift(inputs::Array{Float64, 1}, n::Array{Float64, 1})
