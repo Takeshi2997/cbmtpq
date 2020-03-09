@@ -65,7 +65,7 @@ function hamiltonianS_shift(s::Array{Float64, 1}, n::Array{Float64, 1},
         sflip = flip2(s, ix, ixnext)
         zflip = ANN.forward(sflip)
         rate  = exp(dot(n, zflip .- z))
-        out   = 1.0 - 2.0 * rate
+        out   = 1.0 - rate
     end
  
     return Const.J * out / 4.0
