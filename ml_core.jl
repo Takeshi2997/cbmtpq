@@ -9,6 +9,7 @@ function sampling(ϵ::Float64, lr::Float64)
 
     n = rand([1.0, 0.0],  Const.dimB)
     s = rand([1.0, -1.0], Const.dimS)
+    x = vcat(s, n)
     energy  = 0.0
     energyS = 0.0
     energyB = 0.0
@@ -18,33 +19,30 @@ function sampling(ϵ::Float64, lr::Float64)
 
     for i in 1:Const.burnintime
 
-        s = Func.updateS(s, n)
-        n = Func.updateB(n, s)
+        x = Func.updateS(x)
+        x = Func.updateB(x)
     end
 
     for i in 1:Const.iters_num
-        s     = Func.updateS(s, n)
-        nnext = Func.updateB(n, s)
+        x = Func.updateS(x)
+        eS = Func.energyS_shift(x)
 
-        eS = Func.energyS_shift(s, n)
-        eB = Func.energyB_shift(n, s)
+        x = Func.updateB(x)
+        eB = Func.energyB_shift(x)
+
         e  = eS + eB
         energy    += e
         energyS   += eS
         energyB   += eB
-        numberB   += sum(n)
-        realgs, imaggs = Func.ANN.setupbackward(n, s)
+        numberB   += sum(x[Const.dimS+1:end])
+        realgs, imaggs = Func.ANN.setupbackward(x)
         for i in 1:Const.layers_num
             dwr, dbr, dwi, dbi = Func.ANN.backward(realgs, imaggs, i)
             o[i].W   += dwr
             o[i].b   += dbr
-            oer[i].W += dwr * e
-            oer[i].b += dbr * e
-            oei[i].W += dwi * e
-            oei[i].b += dbi * e
+            oer[i].W += (dwr .+ im * dwi) * e
+            oer[i].b += (dbr .+ im * dbi) * e
         end
-
-        n = nnext
     end
     energy   = real(energy)  / Const.iters_num
     energyS  = real(energyS) / Const.iters_num
@@ -55,9 +53,7 @@ function sampling(ϵ::Float64, lr::Float64)
     for i in 1:Const.layers_num
         ΔWreal = 2.0 * (energy - ϵ) * 2.0 * (real.(oer[i].W) - energy * o[i].W) / Const.iters_num
         Δbreal = 2.0 * (energy - ϵ) * 2.0 * (real.(oer[i].b) - energy * o[i].b) / Const.iters_num
-        ΔWimag = 2.0 * (energy - ϵ) * 2.0 * imag.(oei[i].W) / Const.iters_num
-        Δbimag = 2.0 * (energy - ϵ) * 2.0 * imag.(oei[i].b) / Const.iters_num
-        Func.ANN.update(ΔWreal, Δbreal, ΔWimag, Δbimag, i, lr)
+        Func.ANN.update(ΔWreal, Δbreal, i, lr)
     end
 
     return error, energy, energyS, energyB, numberB

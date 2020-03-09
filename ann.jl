@@ -8,57 +8,48 @@ reallayer1 = Dense(Const.layer[1], Const.layer[2], relu) |> f64
 reallayer2 = Dense(Const.layer[2], Const.layer[3], relu) |> f64
 reallayer3 = Dense(Const.layer[3], Const.layer[4]) |> f64
 f = Chain(reallayer1, reallayer2, reallayer3)
-realps = params(f)
-
-imaglayer1 = Dense(Const.layer[1], Const.layer[2], relu) |> f64
-imaglayer2 = Dense(Const.layer[2], Const.layer[3], relu) |> f64
-imaglayer3 = Dense(Const.layer[3], Const.layer[4]) |> f64
-g = Chain(imaglayer1, imaglayer2, imaglayer3)
-imagps = params(g)
+ps = params(f)
 
 mutable struct Network
 
     f::Any
-    g::Any
 end
 
-network = Network(f, g)
+network = Network(f)
 
 function save(filename)
 
-    @save filename f g
+    @save filename f
 end
 
-function forward(n::Array{Float64, 1})
+function forward(x::Array{Float64, 1})
 
-    return network.f(n) .+ im * network.g(n)
+    return network.f(x)[1] .+ im * network.f(x)[2]
 end
 
-realloss(s, n) = dot(n, f(s))
-imagloss(s, n) = dot(n, g(s))
+realloss(x::Array{Float64, 1}) = f(x)[1]
+imagloss(x::Array{Float64, 1}) = f(x)[2]
 
-function setupbackward(n::Array{Float64, 1}, s::Array{Float64, 1})
+function setupbackward(x::Array{Float64, 1})
 
-    realgs = gradient(() -> realloss(s, n), realps)
-    imaggs = gradient(() -> imagloss(s, n), imagps)
+    realgs = gradient(() -> realloss(x), ps)
+    imaggs = gradient(() -> imagloss(x), ps)
     return realgs, imaggs
 end
 
 function backward(realgs, imaggs, i::Integer)
 
     return realgs[f[i].W], realgs[f[i].b],
-    imaggs[g[i].W], imaggs[g[i].b]
+    imaggs[f[i].W], imaggs[f[i].b]
 end
 
 opt(lr::Float64) = ADAM(lr, (0.9, 0.999))
 
 function update(ΔWreal::Array{Float64, 2}, Δbreal::Array{Float64, 1},
-                ΔWimag::Array{Float64, 2}, Δbimag::Array{Float64, 1}, i::Integer, lr::Float64)
+                i::Integer, lr::Float64)
 
     update!(opt(lr), f[i].W, ΔWreal)
     update!(opt(lr), f[i].b, Δbreal)
-    update!(opt(lr), g[i].W, ΔWimag)
-    update!(opt(lr), g[i].b, Δbimag)
 end
 
 end

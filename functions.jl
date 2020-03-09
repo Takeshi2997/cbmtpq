@@ -3,106 +3,120 @@ include("./setup.jl")
 include("./ann.jl")
 using .Const, .ANN, LinearAlgebra
 
-function updateS(s::Array{Float64, 1}, n::Array{Float64, 1})
+function updateS(x::Array{Float64, 1})
 
-    z = ANN.forward(s)
     for ix in 1:Const.dimS
-        sflip = flip(s, ix)
-        zflip = ANN.forward(sflip)
-        rate = exp(2.0 * real(dot(n, zflip .- z)))
+        z = ANN.forward(x)
+        xflip = flip(x, ix)
+        zflip = ANN.forward(xflip)
+        rate = exp(2.0 * real(zflip .- z))
         if 1.0 > rate
             prob = rand(Float64)
             if prob < rate
-                s[ix] *= -1.0
+                x[ix] *= -1.0
             end
         else
-            s[ix] *= -1.0
+            x[ix] *= -1.0
         end
     end
 
-    return s
+    return x
 end
 
-function flip(s::Array{Float64, 1}, ix::Integer)
+function flip(x::Array{Float64, 1}, ix::Integer)
 
-    sflip = copy(s)
-    sflip[ix] *= -1.0
-    return sflip
+    xout = copy(x)
+    if ix <= Const.dimS
+        xout[ix] *= -1.0
+    else
+        xout[ix] = 1.0 - xout[ix]
+    end
+
+    return xout
 end
 
-function flip2(s::Array{Float64, 1}, iy::Integer, ix::Integer)
+function flip(x::Array{Float64, 1}, iy::Integer, ix::Integer)
 
-    sflip = copy(s)
-    sflip[iy] *= -1.0
-    sflip[ix] *= -1.0
-    return sflip
+    xout = copy(x)
+    if ix <= Const.dimS
+        xout[ix] *= -1.0
+        xout[iy] *= -1.0
+    else
+        xout[ix] = 1.0 - xout[ix]
+        xout[iy] = 1.0 - xout[iy]
+    end
+
+    return xout
 end
 
-function updateB(n::Array{Float64, 1}, s::Array{Float64, 1})
+function updateB(x::Array{Float64, 1})
     
-    z = 2.0 * real.(ANN.forward(s))
-    rate = exp.((1.0 .- 2.0 * n) .* z)
-    for iy in 1:Const.dimB
-        if 1.0 > rate[iy]
+    for iy in Const.dimS+1:Const.dimS+Const.dimB
+        z = ANN.forward(x)
+        xflip = flip(x, iy)
+        zflip = ANN.forward(xflip)
+        rate = exp(2.0 * real(zflip .- z))
+        if 1.0 > rate
             prob = rand(Float64)
-            if prob < rate[iy]
-                n[iy] = 1.0 - n[iy]
+            if prob < rate
+                x[iy] = 1.0 - x[iy]
             end
         else
-            n[iy] = 1.0 - n[iy]
+            x[iy] = 1.0 - x[iy]
         end
     end
 
-    return n
+    return x
 end
 
-function hamiltonianS_shift(s::Array{Float64, 1}, n::Array{Float64, 1}, 
-                            z::Array{ComplexF64, 1}, ix::Integer)
+function hamiltonianS_shift(x::Array{Float64, 1}, 
+                            z::ComplexF64, ix::Integer)
 
     out = 0.0im
     ixnext = ix%Const.dimS + 1
-    if s[ix] != s[ixnext]
-        sflip = flip2(s, ix, ixnext)
-        zflip = ANN.forward(sflip)
-        rate  = exp(dot(n, zflip .- z))
+    if x[ix] != x[ixnext]
+        xflip = flip(x, ix, ixnext)
+        zflip = ANN.forward(xflip)[1]
+        rate  = exp(zflip .- z)
         out   = 1.0 - rate
     end
  
     return Const.J * out / 4.0
 end
 
-function energyS_shift(inputs::Array{Float64, 1}, n::Array{Float64, 1})
+function energyS_shift(x::Array{Float64, 1})
 
-    z = ANN.forward(inputs)
+    z = ANN.forward(x)
     sum = 0.0im
     for ix in 1:2:Const.dimS-1
-        sum += hamiltonianS_shift(inputs, n, z, ix)
+        sum += hamiltonianS_shift(x, z, ix)
     end
 
     return sum
 end
 
-function hamiltonianB_shift(n::Array{Float64, 1}, z::Array{ComplexF64, 1})
+function hamiltonianB_shift(x::Array{Float64, 1}, 
+                            z::ComplexF64, iy::Integer)
 
     out = 0.0im
-    if n[1] != n[2]
-        s = (1.0 / 2.0 .- n) * 2.0
-        out += -exp(transpose(s) * z)
+    iynext = Const.dimS + iy%Const.dimB + 1
+    if x[iy] != x[iynext]
+        xflip = flip(x, iy, iynext)
+        zflip = ANN.forward(xflip)
+        rate  = exp(zflip .- z)
+        out  += -rate
     end
 
     return Const.t * out + 1.0
 end
 
-function energyB_shift(inputn::Array{Float64, 1}, s::Array{Float64, 1})
+function energyB_shift(x::Array{Float64, 1})
 
-    z = ANN.forward(s)
+    z = ANN.forward(x)
     sum = 0.0im
-    for iy in 1:Const.dimB-1
-        sum += hamiltonianB_shift(inputn[iy:iy+1], z[iy:iy+1])
+    for iy in 1:Const.dimB
+        sum += hamiltonianB_shift(x, z, iy)
     end
-    sum += 
-    hamiltonianB_shift(inputn[end:-Const.dimB+1:1], 
-                       z[end:-Const.dimB+1:1])
 
     return sum
 end
