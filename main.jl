@@ -3,7 +3,6 @@ include("./ml_core.jl")
 using .Const, .MLcore, InteractiveUtils
 using Flux
 using BSON
-using CuArrays
 
 function learning(io, ϵ::Float32, lr::Float32)
 
@@ -73,6 +72,5 @@ function main()
     close(g)
 end
 
-CuArrays.allowscalar(false)
 main()
 
