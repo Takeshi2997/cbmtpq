@@ -36,9 +36,9 @@ function main()
     mkdir(dirnameerror)
 
     g = open("error.txt", "w")
-    for iϵ in 1:2 # Const.iϵmax
+    for iϵ in 1:Const.iϵmax
     
-        ϵ = (0.4f0 + 0.5f0 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dimB
+        ϵ = (0.9f0 - 0.5f0 * (iϵ - 1) / Const.iϵmax) * Const.t * Const.dimB
 
         filenameparams = dirname * "/params_at_" * lpad(iϵ, 3, "0") * ".bson"
 
