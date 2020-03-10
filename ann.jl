@@ -30,7 +30,7 @@ end
 function forward(x::Array{Float32, 1})
 
     x = x |> gpu
-    out = dot(network.f(x), d)
+    out = sum(network.f(x) .* d)
     out = out |> cpu
     return out
 end
@@ -38,13 +38,13 @@ end
 function realloss(x::Array{Float32, 1})
 
     x = x |> gpu
-    return dot(f(x), d1)
+    return sum(f(x) .* d1)
 end
 
 function imagloss(x::Array{Float32, 1})
 
     x = x |> gpu 
-    return dot(f(x), d2)
+    return sum(f(x) .* d2)
 end
 
 function setupbackward(x::Array{Float32, 1})
