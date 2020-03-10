@@ -4,62 +4,61 @@ using .Const, LinearAlgebra, Flux
 using Flux.Optimise: update!
 using BSON: @save
 
-layer1 = Dense(Const.layer[1], Const.layer[2], relu)
-layer2 = Dense(Const.layer[2], Const.layer[3], relu)
-layer3 = Dense(Const.layer[3], Const.layer[4])
-f = Chain(layer1, layer2, layer3)
-ps = params(f)
+reallayer1 = Dense(Const.layer[1], Const.layer[2], relu)
+reallayer2 = Dense(Const.layer[2], Const.layer[3], relu)
+reallayer3 = Dense(Const.layer[3], Const.layer[4])
+f = Chain(reallayer1, reallayer2, reallayer3)
+realps = params(f)
+
+imaglayer1 = Dense(Const.layer[1], Const.layer[2], relu)
+imaglayer2 = Dense(Const.layer[2], Const.layer[3], relu)
+imaglayer3 = Dense(Const.layer[3], Const.layer[4])
+g = Chain(imaglayer1, imaglayer2, imaglayer3)
+imagps = params(g)
 
 mutable struct Network
 
     f::Any
+    g::Any
 end
 
-network = Network(f)
+network = Network(f, g)
 
 function save(filename)
 
-    @save filename f
+    @save filename f g
 end
 
 function forward(n::Array{Float32, 1})
 
-    out = network.f(n)
-    return out[1:Const.dimS] .+ im * out[Const.dimS+1:end]
+    return network.f(n) .+ im * network.g(n)
 end
 
-function realloss(s, n)
-    
-    out = f(n)
-    return dot(s, out[1:Const.dimS])
-end
-
-function imagloss(s, n)
-    
-    out = f(n)
-    return dot(s, out[Const.dimS+1:end])
-end
+realloss(s, n) = dot(s, f(n))
+imagloss(s, n) = dot(s, g(n))
 
 function setupbackward(n::Array{Float32, 1}, s::Array{Float32, 1})
 
-    realgs = gradient(() -> realloss(s, n), ps)
-    imaggs = gradient(() -> imagloss(s, n), ps)
+    realgs = gradient(() -> realloss(s, n), realps)
+    imaggs = gradient(() -> imagloss(s, n), imagps)
     return realgs, imaggs
 end
 
 function backward(realgs, imaggs, i::Integer)
 
     return realgs[f[i].W], realgs[f[i].b],
-    imaggs[f[i].W], imaggs[f[i].b]
+    imaggs[g[i].W], imaggs[g[i].b]
 end
 
 opt(lr::Float32) = ADAM(lr, (0.9, 0.999))
 
-function update(ΔW::Array{Float32, 2}, Δb::Array{Float32, 1},
-                i::Integer, lr::Float32)
+function update(ΔWreal::Array{Float32, 2}, Δbreal::Array{Float32, 1},
+                ΔWimag::Array{Float32, 2}, Δbimag::Array{Float32, 1}, i::Integer, lr::Float32)
 
-    update!(opt(lr), f[i].W, ΔW)
-    update!(opt(lr), f[i].b, Δb)
+    update!(opt(lr), f[i].W, ΔWreal)
+    update!(opt(lr), f[i].b, Δbreal)
+    update!(opt(lr), g[i].W, ΔWimag)
+    update!(opt(lr), g[i].b, Δbimag)
 end
 
 end

@@ -14,7 +14,7 @@ function sampling(ϵ::Float32, lr::Float32)
     energyB = 0.0f0
     numberB = 0.0f0
 
-    o, oe = initO()
+    o, oer, oei = initO()
 
     for i in 1:Const.burnintime
 
@@ -38,8 +38,10 @@ function sampling(ϵ::Float32, lr::Float32)
             dwr, dbr, dwi, dbi = Func.ANN.backward(realgs, imaggs, i)
             o[i].W   += dwr
             o[i].b   += dbr
-            oe[i].W += (dwr .+ im * dwi) * e
-            oe[i].b += (dbr .+ im * dbi) * e
+            oer[i].W += dwr * e
+            oer[i].b += dbr * e
+            oei[i].W += dwi * e
+            oei[i].b += dbi * e
         end
     end
     energy   = real(energy)  / Const.iters_num
@@ -49,11 +51,13 @@ function sampling(ϵ::Float32, lr::Float32)
     error    = (energy - ϵ)^2
 
     for i in 1:Const.layers_num
-        ΔW = 2.0f0 * (energy - ϵ) * 2.0f0 * (real.(oe[i].W) - energy * o[i].W) / 
-        Const.iters_num
-        Δb = 2.0f0 * (energy - ϵ) * 2.0f0 * (real.(oe[i].b) - energy * o[i].b) / 
-        Const.iters_num
-        Func.ANN.update(ΔW, Δb, i, lr)
+        ΔWreal = 2.0f0 * (energy - ϵ) * 2.0f0 * 
+        (real.(oer[i].W) - energy * o[i].W) / Const.iters_num
+        Δbreal = 2.0f0 * (energy - ϵ) * 2.0f0 * 
+        (real.(oer[i].b) - energy * o[i].b) / Const.iters_num
+        ΔWimag = 2.0f0 * (energy - ϵ) * 2.0f0 * imag.(oei[i].W) / Const.iters_num
+        Δbimag = 2.0f0 * (energy - ϵ) * 2.0f0 * imag.(oei[i].b) / Const.iters_num
+        Func.ANN.update(ΔWreal, Δbreal, ΔWimag, Δbimag, i, lr)
     end
 
     return error, energy, energyS, energyB, numberB
@@ -73,17 +77,20 @@ end
 
 function initO()
 
-    o  = Array{DiffReal, 1}(undef, Const.layers_num)
-    oe = Array{DiffComplex, 1}(undef, Const.layers_num)
+    o   = Array{DiffReal, 1}(undef, Const.layers_num)
+    oer = Array{DiffComplex, 1}(undef, Const.layers_num)
+    oei = Array{DiffComplex, 1}(undef, Const.layers_num)
 
     for i in 1:Const.layers_num
-        o[i]  = DiffReal(zeros(Float32, Const.layer[i+1], Const.layer[i]), 
-                         zeros(Float32, Const.layer[i+1]))
-        oe[i] = DiffComplex(zeros(Complex{Float32}, Const.layer[i+1], Const.layer[i]), 
-                            zeros(Complex{Float32}, Const.layer[i+1]))
+        o[i]   = DiffReal(zeros(Float64, Const.layer[i+1], Const.layer[i]), 
+                          zeros(Float64, Const.layer[i+1]))
+        oer[i] = DiffComplex(zeros(ComplexF64, Const.layer[i+1], Const.layer[i]), 
+                             zeros(ComplexF64, Const.layer[i+1]))
+        oei[i] = DiffComplex(zeros(ComplexF64, Const.layer[i+1], Const.layer[i]), 
+                             zeros(ComplexF64, Const.layer[i+1]))
     end
 
-    return o, oe
+    return o, oer, oei
 end
 
 function calculation_energy()
