@@ -15,7 +15,7 @@ function sampling(ϵ::Float32, lr::Float32)
     energyB = 0.0f0
     numberB = 0.0f0
 
-    o, oer, oei = initO()
+    o, oe = initO()
 
     for i in 1:Const.burnintime
 
@@ -51,11 +51,11 @@ function sampling(ϵ::Float32, lr::Float32)
     error    = (energy - ϵ)^2
 
     for i in 1:Const.layers_num
-        ΔWreal = 2.0f0 * (energy - ϵ) * 2.0f0 * (real.(oe[i].W) - energy * o[i].W) / 
+        ΔW = 2.0f0 * (energy - ϵ) * 2.0f0 * (real.(oe[i].W) - energy * o[i].W) / 
         Const.iters_num
-        Δbreal = 2.0f0 * (energy - ϵ) * 2.0f0 * (real.(oe[i].b) - energy * o[i].b) / 
+        Δb = 2.0f0 * (energy - ϵ) * 2.0f0 * (real.(oe[i].b) - energy * o[i].b) / 
         Const.iters_num
-        Func.ANN.update(ΔWreal, Δbreal, i, lr)
+        Func.ANN.update(ΔW, Δb, i, lr)
     end
 
     return error, energy, energyS, energyB, numberB
