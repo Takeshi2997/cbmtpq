@@ -25,22 +25,22 @@ end
 function forward(x::Array{Float32, 1})
 
     x = x |> gpu
-    d = [1.0f0, 1.0f0im]
-    return transpose(d) * network.f(x)
+    d = [1.0f0 1.0f0im]
+    return d * network.f(x)
 end
 
 function realloss(x::Array{Float32, 1})
 
     x = x |> gpu
-    d = [1.0f0, 0.0f0]
-    return transpose(d) * f(x)
+    d = [1.0f0 0.0f0]
+    return d * f(x)
 end
 
 function imagloss(x::Array{Float32, 1})
 
     x = x |> gpu 
-    d = [0.0f0, 1.0f0]
-    return transpose(d) * f(x)
+    d = [0.0f0 1.0f0]
+    return d * f(x)
 end
 
 function setupbackward(x::Array{Float32, 1})
