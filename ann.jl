@@ -5,9 +5,9 @@ using Flux.Optimise: update!
 using BSON: @save
 using CuArrays
 
-const d  = CuArray([1.0f0 1.0f0im])
-const d1 = CuArray([1.0f0 0.0f0])
-const d2 = CuArray([0.0f0 1.0f0])
+const d  = CuArray([1.0f0, 1.0f0im])
+const d1 = CuArray([1.0f0, 0.0f0])
+const d2 = CuArray([0.0f0, 1.0f0])
 
 layer1 = Dense(Const.layer[1], Const.layer[2], relu) |> gpu
 layer2 = Dense(Const.layer[2], Const.layer[3], relu) |> gpu
@@ -30,7 +30,7 @@ end
 function forward(x::Array{Float32, 1})
 
     x = x |> gpu
-    out = d * network.f(x)
+    out = dot(network.f(x), d)
     out = out |> cpu
     return out
 end
@@ -38,13 +38,13 @@ end
 function realloss(x::Array{Float32, 1})
 
     x = x |> gpu
-    return d1 * f(x)
+    return dot(f(x), d1)
 end
 
 function imagloss(x::Array{Float32, 1})
 
     x = x |> gpu 
-    return d2 * f(x)
+    return dot(f(x), d2)
 end
 
 function setupbackward(x::Array{Float32, 1})
