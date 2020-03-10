@@ -30,7 +30,8 @@ end
 function forward(x::Array{Float32, 1})
 
     x = x |> gpu
-    return d * network.f(x)
+    out = d * network.f(x)
+    return out |> cpu
 end
 
 function realloss(x::Array{Float32, 1})
