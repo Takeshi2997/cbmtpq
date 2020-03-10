@@ -39,11 +39,11 @@ function translate(u::Float32)
 
     outputs = 0f0.0
     t = 5.0f0
-    tm = 0f0.0
-    tv = 0f0.0
+    tm = 0.0f0
+    tv = 0.0f0
     for n in 1:0
         dt = ds(u, t)
-        lr_t = 0f0.1 * sqrt(1.0f0 - 0.999f0^n) / (1.0f0 - 0.9f0^n)
+        lr_t = 0.1f0 * sqrt(1.0f0 - 0.999f0^n) / (1.0f0 - 0.9f0^n)
         tm += (1.0f0 - 0.9f0) * (dt - tm)
         tv += (1.0f0 - 0.999) * (dt.^2 - tv)
         t  -= lr_t * tm ./ (sqrt.(tv) .+ 1.0f0 * 10^(-7))
@@ -57,7 +57,7 @@ function exact_energy()
 
     dirname = "./data"
     f = open("exact_energy.txt", "w")
-    for iβ in 1:0
+    for iβ in 1:1000
         β = iβ * 0.01f0
    
         ϵ = energy(β)

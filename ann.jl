@@ -25,7 +25,8 @@ end
 function forward(x::Array{Float32, 1})
 
     x = x |> gpu
-    return network.f(x)[1] .+ im * network.f(x)[2]
+    d = [1.0f0, 1.0f0im]
+    return dot(network.f(x), d)
 end
 
 function realloss(x::Array{Float32, 1})
