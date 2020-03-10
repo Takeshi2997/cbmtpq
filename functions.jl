@@ -3,73 +3,73 @@ include("./setup.jl")
 include("./ann.jl")
 using .Const, .ANN, LinearAlgebra
 
-function updateS(s::Array{Float64, 1}, n::Array{Float64, 1})
+function updateS(s::Array{Float32, 1}, n::Array{Float32, 1})
 
-    z = 2.0 * real.(ANN.forward(n))
-    rate = exp.(-2.0 * s .* z)
+    z = 2.0f0 * real.(ANN.forward(n))
+    rate = exp.(-2.0f0 * s .* z)
     for ix in 1:Const.dimS
-        if 1.0 > rate[ix]
-            prob = rand(Float64)
+        if 1.0f0 > rate[ix]
+            prob = rand(Float32)
             if prob < rate[ix]
-                s[ix] *= -1.0
+                s[ix] *= -1.0f0
             end
         else
-            s[ix] *= -1.0
+            s[ix] *= -1.0f0
         end
     end
 
     return s
 end
 
-function flip(n::Array{Float64, 1}, iy::Integer)
+function flip(n::Array{Float32, 1}, iy::Integer)
 
     nflip = copy(n)
-    nflip[iy] = 1.0 - nflip[iy]
+    nflip[iy] = 1.0f0 - nflip[iy]
     return nflip
 end
 
-function flip2(n::Array{Float64, 1}, iy::Integer, ix::Integer)
+function flip2(n::Array{Float32, 1}, iy::Integer, ix::Integer)
 
     nflip = copy(n)
-    nflip[iy] = 1.0 - nflip[iy]
-    nflip[ix] = 1.0 - nflip[ix]
+    nflip[iy] = 1.0f0 - nflip[iy]
+    nflip[ix] = 1.0f0 - nflip[ix]
     return nflip
 end
 
-function updateB(n::Array{Float64, 1}, s::Array{Float64, 1})
+function updateB(n::Array{Float32, 1}, s::Array{Float32, 1})
     
     for iy in 1:Const.dimB
         z = ANN.forward(n)
         nflip = flip(n, iy)
         zflip = ANN.forward(nflip)
-        rate = exp(2.0 * real(dot(s, zflip .- z)))
-        if 1.0 > rate
-            prob = rand(Float64)
+        rate = exp(2.0f0 * real(dot(s, zflip .- z)))
+        if 1.0f0 > rate
+            prob = rand(Float32)
             if prob < rate
-                n[iy] = 1.0 - n[iy]
+                n[iy] = 1.0f0 - n[iy]
             end
         else
-            n[iy] = 1.0 - n[iy]
+            n[iy] = 1.0f0 - n[iy]
         end
     end
 
     return n
 end
 
-function hamiltonianS_shift(s::Array{Float64, 1}, z::Array{ComplexF64, 1})
+function hamiltonianS_shift(s::Array{Float32, 1}, z::Array{Complex{Float32}, 1})
 
-    out = 0.0im
+    out = 0.0f0im
     if s[1] != s[2]
-        out += 1.0 - exp(-2.0 * transpose(z) * s)
+        out += 1.0f0 - exp(-2.0f0 * transpose(z) * s)
     end
 
-    return Const.J * out / 4.0
+    return Const.J * out / 4.0f0
 end
 
-function energyS_shift(inputs::Array{Float64, 1}, n::Array{Float64, 1})
+function energyS_shift(inputs::Array{Float32, 1}, n::Array{Float32, 1})
 
     z = ANN.forward(n)
-    sum = 0.0 + 0.0im
+    sum = 0.0f0 + 0.0f0im
     for ix in 1:2:Const.dimS-1
         sum += hamiltonianS_shift(inputs[ix:ix+1], z[ix:ix+1])
     end
@@ -77,10 +77,10 @@ function energyS_shift(inputs::Array{Float64, 1}, n::Array{Float64, 1})
     return sum
 end
 
-function hamiltonianB_shift(n::Array{Float64, 1}, s::Array{Float64, 1}, 
-                            z::Array{ComplexF64, 1}, iy::Integer)
+function hamiltonianB_shift(n::Array{Float32, 1}, s::Array{Float32, 1}, 
+                            z::Array{Complex{Float32}, 1}, iy::Integer)
 
-    out = 0.0im
+    out = 0.0f0im
     iynext = iy%Const.dimB + 1
     if n[iy] != n[iynext]
         nflip = flip2(n, iy, iynext)
@@ -89,13 +89,13 @@ function hamiltonianB_shift(n::Array{Float64, 1}, s::Array{Float64, 1},
         out  += -rate
     end
 
-    return Const.t * out + 1.0
+    return Const.t * out + 1.0f0
 end
 
-function energyB_shift(inputn::Array{Float64, 1}, s::Array{Float64, 1})
+function energyB_shift(inputn::Array{Float32, 1}, s::Array{Float32, 1})
 
     z = ANN.forward(inputn)
-    sum = 0.0im
+    sum = 0.0f0im
     for iy in 1:Const.dimB
         sum += hamiltonianB_shift(inputn, s, z, iy)
     end
