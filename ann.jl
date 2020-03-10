@@ -3,6 +3,11 @@ include("./setup.jl")
 using .Const, LinearAlgebra, Flux
 using Flux.Optimise: update!
 using BSON: @save
+using CuArrays
+
+const d  = CuArray([1.0 1.0im])
+const d1 = CuArray([1.0 0.0])
+const d2 = CuArray([0.0 1.0])
 
 layer1 = Dense(Const.layer[1], Const.layer[2], relu) |> gpu
 layer2 = Dense(Const.layer[2], Const.layer[3], relu) |> gpu
@@ -25,22 +30,19 @@ end
 function forward(x::Array{Float32, 1})
 
     x = x |> gpu
-    d = [1.0f0 1.0f0im]
     return d * network.f(x)
 end
 
 function realloss(x::Array{Float32, 1})
 
     x = x |> gpu
-    d = [1.0f0 0.0f0]
-    return d * f(x)
+    return d1 * f(x)
 end
 
 function imagloss(x::Array{Float32, 1})
 
     x = x |> gpu 
-    d = [0.0f0 1.0f0]
-    return d * f(x)
+    return d2 * f(x)
 end
 
 function setupbackward(x::Array{Float32, 1})
