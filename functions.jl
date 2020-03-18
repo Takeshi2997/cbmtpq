@@ -70,7 +70,7 @@ function energyS_shift(inputs::Array{Float32, 1}, n::Array{Float32, 1})
 
     z = ANN.forward(n)
     sum = 0.0f0 + 0.0f0im
-    for ix in 1:Const.dimS-1
+    for ix in 1:2:Const.dimS-1
         sum += hamiltonianS_shift(inputs[ix:ix+1], z[ix:ix+1])
     end
 
