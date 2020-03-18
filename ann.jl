@@ -4,18 +4,18 @@ using .Const, LinearAlgebra, Flux
 using Flux.Optimise: update!
 using BSON: @save
 
-reallayer1 = Dense(Const.layer[1], Const.layer[2], tanh)
-reallayer2 = Dense(Const.layer[2], Const.layer[3], tanh)
-reallayer3 = Dense(Const.layer[3], Const.layer[4], tanh)
-reallayer4 = Dense(Const.layer[4], Const.layer[5])
-f = Chain(reallayer1, reallayer2, reallayer3, reallayer4)
+func(x::Float32) = tanh(x)
+
+reallayer1 = Dense(Const.layer[1], Const.layer[2], func)
+reallayer2 = Dense(Const.layer[2], Const.layer[3], func)
+reallayer3 = Dense(Const.layer[3], Const.layer[4])
+f = Chain(reallayer1, reallayer2, reallayer3)
 realps = params(f)
 
-imaglayer1 = Dense(Const.layer[1], Const.layer[2], tanh)
-imaglayer2 = Dense(Const.layer[2], Const.layer[3], tanh)
-imaglayer3 = Dense(Const.layer[3], Const.layer[4], tanh)
-imaglayer4 = Dense(Const.layer[4], Const.layer[5])
-g = Chain(imaglayer1, imaglayer2, imaglayer3, imaglayer4)
+imaglayer1 = Dense(Const.layer[1], Const.layer[2], func)
+imaglayer2 = Dense(Const.layer[2], Const.layer[3], func)
+imaglayer3 = Dense(Const.layer[3], Const.layer[4])
+g = Chain(imaglayer1, imaglayer2, imaglayer3)
 imagps = params(g)
 
 mutable struct Network
