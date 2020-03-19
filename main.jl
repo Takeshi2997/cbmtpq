@@ -4,9 +4,9 @@ using .Const, .MLcore, InteractiveUtils
 using Flux
 using BSON
 
-function learning(io, ϵ::Float32, lr::Float32)
+function learning(io, ϵ::Float32, lr::Float32, it_num::Integer)
 
-    for it in 1:Const.it_num
+    for it in 1:it_num
 
         # Calculate expected value
         error, energy, energyS, energyB, numberB = MLcore.sampling(ϵ, lr)
@@ -48,11 +48,12 @@ function main()
         energyB = 0.0f0
         numberB = 0.0f0
         lr = Const.lr
+        it_num = Const.it_num
 
         # Learning
         filename = dirnameerror * "/error" * lpad(iϵ, 3, "0") * ".txt"
         f = open(filename, "w")
-        @time learning(f, ϵ, lr) 
+        @time learning(f, ϵ, lr, it_num) 
         close(f)
 
         # Write error
